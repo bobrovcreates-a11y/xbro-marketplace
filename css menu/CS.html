@@ -1,0 +1,3259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Counter-Strike: Source</title>
+    <style>
+        /* ---------- БАЗОВЫЕ СТИЛИ (по умолчанию) ---------- */
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background: #1a1a1a;
+            height: 100vh;
+            overflow: hidden;
+            color: #c0b8b0;
+            image-rendering: pixelated;
+            -webkit-font-smoothing: none;
+            font-smooth: never;
+            transition: background 0.4s, font-family 0.4s, color 0.4s;
+        }
+
+        /* ---------- Фон ---------- */
+        #bg-scene {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 0;
+            background: #2a2a2a;
+            background-image:
+                repeating-linear-gradient(45deg, rgba(0, 0, 0, 0.03) 0px, rgba(0, 0, 0, 0.03) 2px,
+                    transparent 2px, transparent 4px),
+                radial-gradient(ellipse at 30% 40%, #3a3a3a 0%, #1a1a1a 100%);
+            transition: background 0.4s;
+        }
+
+        /* ---------- Логотип ---------- */
+        #logo {
+            position: fixed;
+            z-index: 2;
+            top: 8%;
+            left: 5%;
+            font-size: 3.2rem;
+            font-weight: 900;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: #a09888;
+            text-shadow: 0 0 20px rgba(0, 0, 0, 0.8), 0 4px 8px rgba(0, 0, 0, 0.6);
+            pointer-events: none;
+            line-height: 1.1;
+            font-family: 'Courier New', monospace;
+            opacity: 0.7;
+            display: none;
+            transition: color 0.4s, text-shadow 0.4s, font-family 0.4s;
+        }
+        #logo small {
+            display: block;
+            font-size: 1.0rem;
+            font-weight: 400;
+            letter-spacing: 4px;
+            color: #6a625a;
+            margin-top: 2px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        /* ---------- Главное меню ---------- */
+        #main-menu {
+            position: fixed;
+            z-index: 3;
+            top: 30%;
+            left: 5%;
+            display: none;
+            flex-direction: column;
+            gap: 8px;
+            min-width: 240px;
+        }
+        .menu-item {
+            font-size: 1.2rem;
+            font-weight: 400;
+            color: #c8c0b8;
+            padding: 10px 18px;
+            cursor: pointer;
+            background: linear-gradient(180deg, #3d3a35, #2d2a25);
+            border: 2px solid #4d4a45;
+            border-top-color: #6a6660;
+            border-left-color: #5a5650;
+            border-right-color: #2a2824;
+            border-bottom-color: #1a1815;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 4px 8px rgba(0, 0, 0, 0.5);
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+            transition: background 0.1s, border-color 0.1s, box-shadow 0.1s, color 0.1s, border-radius 0.3s, font-family 0.4s;
+            border-radius: 0;
+            text-align: left;
+            font-family: 'Courier New', monospace;
+            width: 100%;
+        }
+        .menu-item:hover {
+            background: linear-gradient(180deg, #5a5548, #3d3a30);
+            border-color: #7a7668;
+            border-top-color: #9a9688;
+            border-left-color: #8a8678;
+            border-right-color: #4a4638;
+            border-bottom-color: #2a2818;
+            color: #ffffff;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12), 0 4px 12px rgba(0, 0, 0, 0.6);
+        }
+        .menu-item:active {
+            background: linear-gradient(180deg, #2d2a25, #1d1a15);
+            border-color: #3d3a35;
+            border-top-color: #2a2824;
+            border-left-color: #2a2824;
+            border-right-color: #4d4a45;
+            border-bottom-color: #5a5650;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.4);
+            transform: translateY(1px);
+        }
+        .menu-item small {
+            font-size: 0.7rem;
+            color: #7a7268;
+            margin-left: 12px;
+        }
+        .menu-item:hover small {
+            color: #aaa098;
+        }
+        .menu-divider {
+            height: 2px;
+            background: linear-gradient(90deg, #4d4a45, #2d2a25, #4d4a45);
+            margin: 2px 0 4px;
+            border: none;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+            transition: background 0.4s;
+        }
+
+        /* ---------- СТИЛИ ДЛЯ MODERN UI (из предыдущей версии) ---------- */
+        body.modern-ui {
+            font-family: 'Segoe UI', 'Arial', sans-serif;
+            -webkit-font-smoothing: antialiased;
+            font-smooth: always;
+            background: #0d1117;
+            color: #e6edf3;
+        }
+        body.modern-ui #bg-scene {
+            background: linear-gradient(145deg, #0d1117 0%, #161b22 100%);
+            background-image: radial-gradient(circle at 20% 30%, rgba(88, 166, 255, 0.05) 0%, transparent 60%),
+                radial-gradient(circle at 80% 70%, rgba(88, 166, 255, 0.03) 0%, transparent 50%);
+        }
+        body.modern-ui #logo {
+            font-family: 'Segoe UI', 'Arial', sans-serif;
+            color: #e6edf3;
+            text-shadow: 0 0 30px rgba(88, 166, 255, 0.15), 0 4px 12px rgba(0, 0, 0, 0.6);
+            letter-spacing: 3px;
+        }
+        body.modern-ui #logo small {
+            color: #8b949e;
+        }
+        body.modern-ui .menu-item {
+            background: linear-gradient(145deg, #21262d, #161b22);
+            border: 1px solid #30363d;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+            font-family: 'Segoe UI', 'Arial', sans-serif;
+            color: #c9d1d9;
+            text-shadow: none;
+            transition: background 0.2s, border-color 0.2s, box-shadow 0.2s, transform 0.1s;
+        }
+        body.modern-ui .menu-item:hover {
+            background: linear-gradient(145deg, #30363d, #21262d);
+            border-color: #58a6ff;
+            box-shadow: 0 4px 16px rgba(88, 166, 255, 0.15);
+            color: #ffffff;
+        }
+        body.modern-ui .menu-item:active {
+            transform: scale(0.97);
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+        }
+        body.modern-ui .menu-item small {
+            color: #8b949e;
+        }
+        body.modern-ui .menu-divider {
+            background: linear-gradient(90deg, #30363d, #21262d, #30363d);
+            height: 1px;
+        }
+        body.modern-ui .dialog-window {
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+            font-family: 'Segoe UI', 'Arial', sans-serif;
+        }
+        body.modern-ui .dialog-titlebar {
+            background: linear-gradient(145deg, #21262d, #161b22);
+            border-bottom: 1px solid #30363d;
+            border-radius: 12px 12px 0 0;
+            padding: 10px 16px;
+        }
+        body.modern-ui .dialog-titlebar span {
+            color: #e6edf3;
+            font-weight: 600;
+        }
+        body.modern-ui .dialog-close {
+            background: #21262d;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            color: #c9d1d9;
+            font-size: 1rem;
+            padding: 0 8px;
+            line-height: 1.6;
+        }
+        body.modern-ui .dialog-close:hover {
+            background: #30363d;
+            color: #fff;
+        }
+        body.modern-ui .dialog-body {
+            background: #0d1117;
+            border-top: 1px solid #21262d;
+            border-bottom: 1px solid #21262d;
+            color: #c9d1d9;
+        }
+        body.modern-ui .dialog-footer {
+            background: #161b22;
+            border-top: 1px solid #21262d;
+        }
+        body.modern-ui .dialog-footer button {
+            background: #21262d;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            color: #c9d1d9;
+            font-family: 'Segoe UI', 'Arial', sans-serif;
+            text-shadow: none;
+            padding: 6px 18px;
+        }
+        body.modern-ui .dialog-footer button:hover {
+            background: #30363d;
+            border-color: #58a6ff;
+            color: #fff;
+        }
+        body.modern-ui .dialog-footer button.primary {
+            background: #238636;
+            border-color: #2ea043;
+            color: #fff;
+        }
+        body.modern-ui .dialog-footer button.primary:hover {
+            background: #2ea043;
+            border-color: #3fb950;
+        }
+        body.modern-ui .dialog-footer button.primary:disabled {
+            opacity: 0.4;
+            background: #21262d;
+            border-color: #30363d;
+        }
+        body.modern-ui .server-table th {
+            background: #161b22;
+            color: #8b949e;
+            border-bottom: 2px solid #30363d;
+        }
+        body.modern-ui .server-table td {
+            color: #c9d1d9;
+            border-bottom: 1px solid #21262d;
+        }
+        body.modern-ui .server-table tr:hover td {
+            background: rgba(255, 255, 255, 0.03);
+        }
+        body.modern-ui .server-table tr.selected td {
+            background: rgba(88, 166, 255, 0.15);
+            color: #fff;
+        }
+        body.modern-ui .tab-btn {
+            background: #21262d;
+            border: 1px solid #30363d;
+            border-bottom: none;
+            border-radius: 6px 6px 0 0;
+            color: #8b949e;
+            font-family: 'Segoe UI', 'Arial', sans-serif;
+            padding: 6px 16px;
+            margin-right: 4px;
+        }
+        body.modern-ui .tab-btn:hover {
+            background: #30363d;
+            color: #c9d1d9;
+        }
+        body.modern-ui .tab-btn.active {
+            background: #0d1117;
+            color: #e6edf3;
+            border-bottom: 2px solid #58a6ff;
+        }
+        body.modern-ui .option-row label {
+            color: #c9d1d9;
+        }
+        body.modern-ui .option-row input[type="text"] {
+            background: #0d1117;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            color: #e6edf3;
+        }
+        body.modern-ui .option-row input[type="text"]:focus {
+            border-color: #58a6ff;
+        }
+        body.modern-ui .option-row input[type="range"] {
+            accent-color: #58a6ff;
+            background: #21262d;
+            height: 4px;
+        }
+        body.modern-ui .mod-item {
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 8px;
+            padding: 12px 16px;
+        }
+        body.modern-ui .mod-item:hover {
+            border-color: #58a6ff;
+        }
+        body.modern-ui .mod-info .mod-name {
+            color: #e6edf3;
+            font-weight: 600;
+        }
+        body.modern-ui .mod-info .mod-desc {
+            color: #8b949e;
+        }
+        body.modern-ui .mod-info .mod-size {
+            color: #6e7681;
+        }
+        body.modern-ui .mod-actions button {
+            background: #21262d;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            color: #c9d1d9;
+            font-family: 'Segoe UI', 'Arial', sans-serif;
+            padding: 4px 14px;
+        }
+        body.modern-ui .mod-actions button:hover {
+            background: #30363d;
+            border-color: #58a6ff;
+            color: #fff;
+        }
+        body.modern-ui .mod-actions button:disabled {
+            opacity: 0.5;
+        }
+        body.modern-ui .mod-actions .mod-status.installed {
+            color: #3fb950;
+        }
+        body.modern-ui .mod-actions .download-progress .fill {
+            background: repeating-linear-gradient(90deg, #58a6ff 0px, #79c0ff 4px, #58a6ff 8px);
+        }
+        body.modern-ui .lang-select {
+            background: #0d1117;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            color: #e6edf3;
+        }
+        body.modern-ui .lang-select:focus {
+            border-color: #58a6ff;
+        }
+        body.modern-ui .confirm-text {
+            color: #c9d1d9;
+        }
+        body.modern-ui .connecting-box .spinner {
+            border-color: #30363d;
+            border-top-color: #58a6ff;
+        }
+        body.modern-ui .connecting-box .msg {
+            color: #e6edf3;
+        }
+        body.modern-ui .loading-screen {
+            border: 1px solid #30363d;
+            background: #0d1117;
+        }
+        body.modern-ui .loading-screen .load-text {
+            color: #e6edf3;
+            font-family: 'Segoe UI', 'Arial', sans-serif;
+            text-shadow: 0 0 20px rgba(88, 166, 255, 0.2);
+        }
+        body.modern-ui .loading-screen .load-sub {
+            color: #8b949e;
+            font-family: 'Segoe UI', 'Arial', sans-serif;
+        }
+        body.modern-ui .loading-screen .bar-wrap {
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+        }
+        body.modern-ui .loading-screen .bar-fill {
+            background: repeating-linear-gradient(90deg, #58a6ff 0px, #79c0ff 4px, #58a6ff 8px);
+            border-radius: 6px;
+        }
+        body.modern-ui .loading-screen .load-stage {
+            color: #8b949e;
+            font-family: 'Segoe UI', 'Arial', sans-serif;
+        }
+        body.modern-ui .loading-screen .load-cancel {
+            background: #21262d;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            color: #c9d1d9;
+            font-family: 'Segoe UI', 'Arial', sans-serif;
+        }
+        body.modern-ui .loading-screen .load-cancel:hover {
+            background: #30363d;
+            color: #fff;
+        }
+        body.modern-ui #notification-dialog .dialog-body {
+            font-family: 'Segoe UI', 'Arial', sans-serif;
+        }
+        /* ---------- Стили для саундтреков ---------- */
+        .soundtrack-list {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            max-height: 400px;
+            overflow-y: auto;
+            padding-right: 4px;
+        }
+        .soundtrack-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 6px 10px;
+            background: #2a2824;
+            border: 1px solid #4d4a45;
+            transition: background 0.1s, border-color 0.1s;
+        }
+        .soundtrack-item:hover {
+            background: #3d3a35;
+            border-color: #6a6660;
+        }
+        .soundtrack-item .track-name {
+            color: #d0c8c0;
+            font-size: 0.85rem;
+        }
+        .soundtrack-item .track-duration {
+            color: #6a625a;
+            font-size: 0.7rem;
+            margin-left: 12px;
+        }
+        .soundtrack-item .track-actions button {
+            background: linear-gradient(180deg, #4d4a45, #2d2a25);
+            border: 2px solid #4d4a45;
+            border-top-color: #6a6660;
+            border-left-color: #5a5650;
+            border-right-color: #2a2824;
+            border-bottom-color: #1a1815;
+            color: #d0c8c0;
+            padding: 2px 12px;
+            cursor: pointer;
+            font-size: 0.7rem;
+            font-family: 'Courier New', monospace;
+            transition: background 0.1s, color 0.1s;
+            border-radius: 0;
+        }
+        .soundtrack-item .track-actions button:hover {
+            background: linear-gradient(180deg, #6a6660, #4d4a45);
+            color: #fff;
+        }
+        .soundtrack-item .track-actions button:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+        .soundtrack-item .track-actions .now-playing {
+            color: #8aaa6a;
+            font-size: 0.7rem;
+            margin-right: 8px;
+        }
+        /* Modern UI стили для саундтреков */
+        body.modern-ui .soundtrack-item {
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+        }
+        body.modern-ui .soundtrack-item:hover {
+            background: #21262d;
+            border-color: #58a6ff;
+        }
+        body.modern-ui .soundtrack-item .track-name {
+            color: #c9d1d9;
+        }
+        body.modern-ui .soundtrack-item .track-duration {
+            color: #6e7681;
+        }
+        body.modern-ui .soundtrack-item .track-actions button {
+            background: #21262d;
+            border: 1px solid #30363d;
+            border-radius: 4px;
+            color: #c9d1d9;
+            font-family: 'Segoe UI', 'Arial', sans-serif;
+            padding: 2px 12px;
+        }
+        body.modern-ui .soundtrack-item .track-actions button:hover {
+            background: #30363d;
+            border-color: #58a6ff;
+            color: #fff;
+        }
+        body.modern-ui .soundtrack-item .track-actions .now-playing {
+            color: #3fb950;
+        }
+
+        /* ---------- Стили для инвентаря ---------- */
+        .inventory-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 8px;
+            margin-top: 8px;
+        }
+        .inventory-item {
+            background: #2a2824;
+            border: 1px solid #4d4a45;
+            padding: 8px 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: background 0.1s, border-color 0.1s;
+        }
+        .inventory-item:hover {
+            background: #3d3a35;
+            border-color: #6a6660;
+        }
+        .inventory-item .item-name {
+            font-size: 0.85rem;
+            color: #d0c8c0;
+        }
+        .inventory-item .item-count {
+            margin-left: auto;
+            font-size: 0.75rem;
+            color: #6a625a;
+        }
+        .inventory-category {
+            margin-top: 12px;
+            margin-bottom: 4px;
+            color: #b0a8a0;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-bottom: 1px solid #4d4a45;
+            padding-bottom: 4px;
+        }
+        body.modern-ui .inventory-item {
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+        }
+        body.modern-ui .inventory-item:hover {
+            background: #21262d;
+            border-color: #58a6ff;
+        }
+        body.modern-ui .inventory-item .item-name {
+            color: #c9d1d9;
+        }
+        body.modern-ui .inventory-item .item-count {
+            color: #6e7681;
+        }
+        body.modern-ui .inventory-category {
+            color: #8b949e;
+            border-bottom-color: #30363d;
+        }
+
+        /* ---------- СТИЛИ ДЛЯ HUD ---------- */
+        #hud-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+            z-index: 500;
+            display: none;
+        }
+        #hud-container.active {
+            display: block;
+        }
+        #hud-score {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #fff;
+            font-size: 32px;
+            font-weight: bold;
+            text-shadow: 0 0 10px rgba(0, 0, 0, 0.8);
+            font-family: 'Courier New', monospace;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 4px 20px;
+            border-radius: 4px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .hud-avatars {
+            position: absolute;
+            top: 70px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .hud-avatars-left {
+            left: 20px;
+        }
+        .hud-avatars-right {
+            right: 20px;
+        }
+        .hud-avatar {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(0, 0, 0, 0.4);
+            padding: 4px 8px;
+            border-radius: 4px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .hud-avatar .avatar-img {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: #333;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            color: #aaa;
+            border: 2px solid #555;
+            font-weight: bold;
+            text-shadow: 0 0 4px rgba(0,0,0,0.5);
+        }
+        .hud-avatar .avatar-name {
+            color: #ddd;
+            font-size: 12px;
+            font-family: 'Courier New', monospace;
+            text-shadow: 0 0 6px rgba(0,0,0,0.8);
+            min-width: 60px;
+        }
+        #hud-hp-armor {
+            position: absolute;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 30px;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.6);
+            padding: 8px 20px;
+            border-radius: 4px;
+            border: 1px solid #555;
+        }
+        .hud-bar-container {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .hud-bar-container label {
+            color: #fff;
+            font-size: 14px;
+            font-weight: bold;
+            text-shadow: 0 0 4px rgba(0,0,0,0.8);
+            min-width: 40px;
+        }
+        .hud-bar-track {
+            width: 150px;
+            height: 14px;
+            background: #222;
+            border: 1px solid #444;
+            position: relative;
+            overflow: hidden;
+        }
+        .hud-bar-fill {
+            height: 100%;
+            width: 100%;
+            transition: width 0.2s;
+        }
+        .hud-bar-fill.hp {
+            background: #00cc00;
+        }
+        .hud-bar-fill.armor {
+            background: #00aaff;
+        }
+        .hud-bar-text {
+            color: #fff;
+            font-size: 14px;
+            min-width: 30px;
+            text-align: right;
+            text-shadow: 0 0 4px rgba(0,0,0,0.8);
+        }
+        /* Адаптивность HUD */
+        @media (max-width: 768px) {
+            .hud-bar-track {
+                width: 100px;
+            }
+            .hud-avatar .avatar-img {
+                width: 24px;
+                height: 24px;
+                font-size: 12px;
+            }
+            .hud-avatar .avatar-name {
+                font-size: 10px;
+                min-width: 40px;
+            }
+            #hud-score {
+                font-size: 24px;
+                padding: 2px 12px;
+            }
+            #hud-hp-armor {
+                gap: 16px;
+                padding: 4px 12px;
+                bottom: 20px;
+            }
+            .hud-bar-container label {
+                font-size: 12px;
+                min-width: 30px;
+            }
+            .hud-bar-text {
+                font-size: 12px;
+                min-width: 24px;
+            }
+        }
+        @media (max-width: 480px) {
+            .hud-bar-track {
+                width: 60px;
+            }
+            .hud-avatar .avatar-img {
+                width: 20px;
+                height: 20px;
+                font-size: 10px;
+            }
+            .hud-avatar .avatar-name {
+                font-size: 8px;
+                min-width: 30px;
+            }
+            #hud-score {
+                font-size: 18px;
+                padding: 2px 8px;
+                top: 10px;
+            }
+            #hud-hp-armor {
+                gap: 10px;
+                padding: 4px 8px;
+                bottom: 10px;
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            .hud-bar-container label {
+                font-size: 10px;
+                min-width: 24px;
+            }
+            .hud-bar-text {
+                font-size: 10px;
+                min-width: 20px;
+            }
+            .hud-avatars {
+                top: 50px;
+                gap: 4px;
+            }
+            .hud-avatars-left {
+                left: 8px;
+            }
+            .hud-avatars-right {
+                right: 8px;
+            }
+        }
+
+        /* ---------- Остальные стили (базовые) ---------- */
+        .dialog-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 100;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 0, 0, 0.7);
+            animation: fadeIn 0.12s ease;
+        }
+        .dialog-overlay.active {
+            display: flex;
+        }
+        @keyframes fadeIn {
+            0% {
+                opacity: 0;
+                transform: scale(0.96);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .dialog-window {
+            background: #3d3a35;
+            border: 3px solid #6a6660;
+            border-top-color: #8a8678;
+            border-left-color: #7a7668;
+            border-right-color: #4a4638;
+            border-bottom-color: #2a2818;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.9), inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+            min-width: 480px;
+            max-width: 92vw;
+            max-height: 85vh;
+            display: flex;
+            flex-direction: column;
+            font-family: 'Courier New', monospace;
+            border-radius: 0;
+            transition: border 0.3s, box-shadow 0.3s, border-radius 0.3s, background 0.3s;
+        }
+        .dialog-titlebar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 6px 12px 4px 16px;
+            background: linear-gradient(180deg, #5a5650, #3d3a35);
+            border-bottom: 2px solid #2a2818;
+            flex-shrink: 0;
+            transition: background 0.3s, border-bottom 0.3s;
+        }
+        .dialog-titlebar span {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: #e0d8d0;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+        }
+        .dialog-close {
+            background: linear-gradient(180deg, #4d4a45, #2d2a25);
+            border: 2px solid #4d4a45;
+            border-top-color: #6a6660;
+            border-left-color: #5a5650;
+            border-right-color: #2a2824;
+            border-bottom-color: #1a1815;
+            color: #c8c0b8;
+            font-size: 1.1rem;
+            cursor: pointer;
+            padding: 0 10px;
+            line-height: 1.4;
+            transition: background 0.1s, color 0.1s, border 0.1s, border-radius 0.3s;
+            font-family: 'Courier New', monospace;
+            border-radius: 0;
+        }
+        .dialog-close:hover {
+            background: linear-gradient(180deg, #6a6660, #4d4a45);
+            color: #fff;
+        }
+        .dialog-close:active {
+            background: linear-gradient(180deg, #2d2a25, #1d1a15);
+        }
+        .dialog-body {
+            padding: 14px 16px 16px;
+            flex: 1;
+            overflow-y: auto;
+            color: #d0c8c0;
+            background: #3a3732;
+            border-top: 1px solid #4a4638;
+            border-bottom: 1px solid #2a2818;
+            transition: background 0.3s, border-color 0.3s, color 0.3s;
+        }
+        .dialog-footer {
+            padding: 8px 16px 12px;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            border-top: 2px solid #2a2818;
+            flex-shrink: 0;
+            flex-wrap: wrap;
+            background: #3d3a35;
+            transition: background 0.3s, border-top 0.3s;
+        }
+        .dialog-footer button {
+            background: linear-gradient(180deg, #4d4a45, #2d2a25);
+            border: 2px solid #4d4a45;
+            border-top-color: #6a6660;
+            border-left-color: #5a5650;
+            border-right-color: #2a2824;
+            border-bottom-color: #1a1815;
+            color: #d0c8c0;
+            padding: 4px 18px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            font-family: 'Courier New', monospace;
+            transition: background 0.1s, border-color 0.1s, color 0.1s, border-radius 0.3s;
+            border-radius: 0;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+        }
+        .dialog-footer button:hover {
+            background: linear-gradient(180deg, #6a6660, #4d4a45);
+            border-color: #7a7668;
+            border-top-color: #9a9688;
+            border-left-color: #8a8678;
+            border-right-color: #4a4638;
+            border-bottom-color: #2a2818;
+            color: #fff;
+        }
+        .dialog-footer button:active {
+            background: linear-gradient(180deg, #2d2a25, #1d1a15);
+            border-color: #3d3a35;
+            border-top-color: #2a2824;
+            border-left-color: #2a2824;
+            border-right-color: #4d4a45;
+            border-bottom-color: #5a5650;
+            transform: translateY(1px);
+        }
+        .dialog-footer button.primary {
+            background: linear-gradient(180deg, #5a7a8a, #3a5a6a);
+            border-color: #5a7a8a;
+            border-top-color: #7a9aaa;
+            border-left-color: #6a8a9a;
+            border-right-color: #2a4a5a;
+            border-bottom-color: #1a3a4a;
+        }
+        .dialog-footer button.primary:hover {
+            background: linear-gradient(180deg, #7a9aaa, #5a7a8a);
+            border-color: #8aaaba;
+            border-top-color: #aacada;
+            border-left-color: #9abaca;
+            border-right-color: #4a6a7a;
+            border-bottom-color: #2a4a5a;
+        }
+        .dialog-footer button.primary:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            background: linear-gradient(180deg, #3a4a4a, #2a3a3a);
+            border-color: #3a4a4a;
+        }
+
+        /* ---------- Таблица серверов ---------- */
+        .server-table-wrap {
+            overflow-x: auto;
+            margin-top: 4px;
+        }
+        .server-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.8rem;
+            font-family: 'Courier New', monospace;
+        }
+        .server-table th {
+            text-align: left;
+            padding: 6px 8px;
+            color: #b0a8a0;
+            font-weight: 700;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            border-bottom: 2px solid #4d4a45;
+            background: #3a3732;
+            transition: background 0.3s, color 0.3s, border-bottom 0.3s;
+        }
+        .server-table td {
+            padding: 6px 8px;
+            border-bottom: 1px solid #4d4a45;
+            color: #d0c8c0;
+            cursor: pointer;
+            transition: background 0.08s, color 0.3s, border-bottom 0.3s;
+        }
+        .server-table tr:hover td {
+            background: rgba(255, 255, 255, 0.04);
+        }
+        .server-table tr.selected td {
+            background: #2a4a6a;
+            color: #fff;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+        }
+        .server-table .col-pw {
+            width: 38px;
+            text-align: center;
+        }
+        .server-table .col-secure {
+            width: 38px;
+            text-align: center;
+        }
+        .server-table .col-players {
+            width: 70px;
+            text-align: center;
+        }
+        .server-table .col-ping {
+            width: 50px;
+            text-align: center;
+        }
+        .server-table .col-map {
+            width: 80px;
+        }
+
+        /* ---------- Options / Вкладки ---------- */
+        .tabs {
+            display: flex;
+            gap: 0;
+            border-bottom: 2px solid #2a2818;
+            margin-bottom: 14px;
+            flex-wrap: wrap;
+            background: #3d3a35;
+            transition: background 0.3s, border-bottom 0.3s;
+        }
+        .tab-btn {
+            background: linear-gradient(180deg, #3d3a35, #2d2a25);
+            border: 2px solid #4d4a45;
+            border-bottom: none;
+            padding: 6px 16px;
+            color: #a09890;
+            font-size: 0.8rem;
+            font-family: 'Courier New', monospace;
+            cursor: pointer;
+            transition: background 0.1s, color 0.1s, border 0.1s, border-radius 0.3s;
+            border-radius: 0;
+            margin-right: 2px;
+            border-top-color: #6a6660;
+            border-left-color: #5a5650;
+            border-right-color: #2a2824;
+        }
+        .tab-btn:hover {
+            background: linear-gradient(180deg, #5a5650, #3d3a35);
+            color: #d0c8c0;
+        }
+        .tab-btn.active {
+            background: linear-gradient(180deg, #5a5650, #4a4638);
+            color: #fff;
+            border-top-color: #8a8678;
+            border-left-color: #7a7668;
+            border-right-color: #3d3a35;
+            border-bottom: 2px solid #4a4638;
+            margin-bottom: -2px;
+        }
+        .tab-content {
+            display: none;
+            padding: 4px 0 8px;
+        }
+        .tab-content.active {
+            display: block;
+        }
+
+        .option-row {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 14px;
+            flex-wrap: wrap;
+        }
+        .option-row label {
+            min-width: 100px;
+            color: #b0a8a0;
+            font-size: 0.8rem;
+            transition: color 0.3s;
+        }
+        .option-row input[type="range"] {
+            flex: 1;
+            min-width: 120px;
+            accent-color: #6a8a9a;
+            background: #2a2824;
+            height: 6px;
+            border: 1px solid #4d4a45;
+            cursor: pointer;
+            border-radius: 0;
+            transition: accent-color 0.3s, background 0.3s;
+        }
+        .option-row input[type="text"] {
+            flex: 1;
+            min-width: 120px;
+            background: #2a2824;
+            border: 2px solid #4d4a45;
+            border-top-color: #2a2824;
+            border-left-color: #2a2824;
+            border-right-color: #5a5650;
+            border-bottom-color: #5a5650;
+            color: #d0c8c0;
+            padding: 4px 10px;
+            border-radius: 0;
+            font-size: 0.8rem;
+            font-family: 'Courier New', monospace;
+            outline: none;
+            transition: border-color 0.15s, background 0.3s, color 0.3s, border-radius 0.3s;
+        }
+        .option-row input[type="text"]:focus {
+            border-color: #7a9aaa;
+        }
+        .option-row .value-display {
+            min-width: 36px;
+            color: #d0c8c0;
+            font-size: 0.8rem;
+            text-align: center;
+        }
+        .option-row .hint {
+            color: #6a625a;
+            font-size: 0.7rem;
+        }
+
+        /* ---------- Моды (установленные) ---------- */
+        .mods-list {
+            list-style: none;
+            padding: 0;
+            margin: 4px 0;
+        }
+        .mods-list li {
+            padding: 4px 8px;
+            border-bottom: 1px solid #4d4a45;
+            color: #c8c0b8;
+            font-size: 0.8rem;
+            display: flex;
+            justify-content: space-between;
+            transition: border-bottom 0.3s, color 0.3s;
+        }
+        .mods-list li span {
+            color: #6a625a;
+        }
+
+        /* ---------- Каталог модов ---------- */
+        .mods-catalog {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-top: 4px;
+        }
+        .mod-item {
+            background: #2a2824;
+            border: 2px solid #4d4a45;
+            border-top-color: #5a5650;
+            border-left-color: #5a5650;
+            border-right-color: #3d3a35;
+            border-bottom-color: #3d3a35;
+            padding: 10px 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            transition: border-color 0.1s, background 0.3s, border 0.3s, border-radius 0.3s;
+        }
+        .mod-item:hover {
+            border-color: #6a6660;
+        }
+        .mod-info {
+            flex: 1;
+            min-width: 160px;
+        }
+        .mod-info .mod-name {
+            color: #d0c8c0;
+            font-size: 0.9rem;
+            font-weight: 700;
+        }
+        .mod-info .mod-desc {
+            color: #8a827a;
+            font-size: 0.75rem;
+            margin-top: 2px;
+        }
+        .mod-info .mod-size {
+            color: #6a625a;
+            font-size: 0.7rem;
+            margin-top: 2px;
+        }
+        .mod-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .mod-actions .mod-status {
+            font-size: 0.7rem;
+            color: #6a625a;
+            min-width: 60px;
+        }
+        .mod-actions .mod-status.installed {
+            color: #8aaa6a;
+        }
+        .mod-actions .mod-status.downloading {
+            color: #aaa86a;
+        }
+        .mod-actions button {
+            background: linear-gradient(180deg, #4d4a45, #2d2a25);
+            border: 2px solid #4d4a45;
+            border-top-color: #6a6660;
+            border-left-color: #5a5650;
+            border-right-color: #2a2824;
+            border-bottom-color: #1a1815;
+            color: #d0c8c0;
+            padding: 4px 14px;
+            cursor: pointer;
+            font-size: 0.75rem;
+            font-family: 'Courier New', monospace;
+            transition: background 0.1s, color 0.1s, border 0.1s, border-radius 0.3s;
+            border-radius: 0;
+        }
+        .mod-actions button:hover {
+            background: linear-gradient(180deg, #6a6660, #4d4a45);
+            color: #fff;
+        }
+        .mod-actions button:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+        .mod-actions .download-progress {
+            width: 80px;
+            height: 6px;
+            background: #1a1a1a;
+            border: 1px solid #4d4a45;
+            display: none;
+        }
+        .mod-actions .download-progress.active {
+            display: inline-block;
+        }
+        .mod-actions .download-progress .fill {
+            height: 100%;
+            width: 0%;
+            background: repeating-linear-gradient(90deg, #8a9a6a 0px, #aaba8a 4px, #8a9a6a 8px);
+            transition: width 0.2s;
+        }
+
+        /* ---------- Язык ---------- */
+        .lang-select {
+            background: #2a2824;
+            border: 2px solid #4d4a45;
+            border-top-color: #2a2824;
+            border-left-color: #2a2824;
+            border-right-color: #5a5650;
+            border-bottom-color: #5a5650;
+            color: #d0c8c0;
+            padding: 4px 10px;
+            font-size: 0.8rem;
+            font-family: 'Courier New', monospace;
+            outline: none;
+            cursor: pointer;
+            transition: border 0.3s, background 0.3s, color 0.3s, border-radius 0.3s;
+        }
+        .lang-select:focus {
+            border-color: #7a9aaa;
+        }
+        .lang-select option {
+            background: #2a2824;
+            color: #d0c8c0;
+        }
+
+        /* ---------- Create Server ---------- */
+        .create-row {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 14px;
+            flex-wrap: wrap;
+        }
+        .create-row label {
+            min-width: 80px;
+            color: #b0a8a0;
+            font-size: 0.8rem;
+            transition: color 0.3s;
+        }
+        .create-row select,
+        .create-row input[type="number"] {
+            flex: 1;
+            min-width: 100px;
+            background: #2a2824;
+            border: 2px solid #4d4a45;
+            border-top-color: #2a2824;
+            border-left-color: #2a2824;
+            border-right-color: #5a5650;
+            border-bottom-color: #5a5650;
+            color: #d0c8c0;
+            padding: 4px 10px;
+            border-radius: 0;
+            font-size: 0.8rem;
+            font-family: 'Courier New', monospace;
+            outline: none;
+            transition: border 0.3s, background 0.3s, color 0.3s, border-radius 0.3s;
+        }
+        .create-row select:focus,
+        .create-row input[type="number"]:focus {
+            border-color: #7a9aaa;
+        }
+        .create-row select option {
+            background: #2a2824;
+            color: #d0c8c0;
+        }
+
+        /* ---------- Quit Confirm (уже не используется, но оставим) ---------- */
+        .confirm-text {
+            font-size: 0.95rem;
+            color: #d0c8c0;
+            padding: 8px 4px;
+            text-align: center;
+            transition: color 0.3s;
+        }
+        .confirm-text .icon {
+            font-size: 2rem;
+            display: block;
+            margin-bottom: 8px;
+            opacity: 0.5;
+        }
+
+        /* ---------- Connecting ---------- */
+        .connecting-box {
+            text-align: center;
+            padding: 30px 20px;
+        }
+        .connecting-box .spinner {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            border: 4px solid #4d4a45;
+            border-top-color: #b0a8a0;
+            border-radius: 0;
+            animation: spin 0.8s linear infinite;
+            margin-bottom: 16px;
+            transition: border-color 0.3s;
+        }
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+        .connecting-box .msg {
+            font-size: 1.1rem;
+            color: #d0c8c0;
+            transition: color 0.3s;
+        }
+        .connecting-box .sub {
+            font-size: 0.75rem;
+            color: #6a625a;
+            margin-top: 8px;
+        }
+
+        /* ---------- Экран загрузки ---------- */
+        .loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 200;
+            background: #0a0a0a;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            animation: fadeIn 0.4s ease;
+            border: 6px solid #2a2824;
+            box-shadow: inset 0 0 0 2px #4d4a45;
+            transition: border 0.3s, background 0.3s, box-shadow 0.3s;
+        }
+        .loading-screen.active {
+            display: flex;
+        }
+        .loading-screen .load-text {
+            color: #d4c8a0;
+            font-size: 2.2rem;
+            font-weight: 700;
+            letter-spacing: 4px;
+            text-shadow: 0 0 12px rgba(200, 180, 120, 0.3);
+            font-family: 'Courier New', monospace;
+            text-transform: uppercase;
+            margin-bottom: 6px;
+            transition: color 0.3s, font-family 0.3s, text-shadow 0.3s;
+        }
+        .loading-screen .load-sub {
+            color: #8a8270;
+            font-size: 1.0rem;
+            font-family: 'Courier New', monospace;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            margin-bottom: 20px;
+            transition: color 0.3s, font-family 0.3s;
+        }
+        .loading-screen .bar-wrap {
+            width: 400px;
+            max-width: 80vw;
+            height: 16px;
+            background: #1a1a1a;
+            border: 3px solid #4d4a45;
+            border-top-color: #2a2824;
+            border-left-color: #2a2824;
+            border-right-color: #6a6660;
+            border-bottom-color: #6a6660;
+            margin-top: 8px;
+            overflow: hidden;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.6);
+            transition: border 0.3s, background 0.3s, box-shadow 0.3s, border-radius 0.3s;
+        }
+        .loading-screen .bar-fill {
+            height: 100%;
+            width: 0%;
+            background: repeating-linear-gradient(90deg,
+                    #8a9a6a 0px, #aaba8a 4px, #8a9a6a 8px);
+            transition: width 0.15s ease, background 0.3s, border-radius 0.3s;
+        }
+        .loading-screen .load-stage {
+            color: #6a625a;
+            font-size: 0.8rem;
+            margin-top: 14px;
+            font-family: 'Courier New', monospace;
+            min-height: 1.2em;
+            transition: color 0.3s, font-family 0.3s;
+        }
+        .loading-screen .load-cancel {
+            margin-top: 24px;
+            background: linear-gradient(180deg, #4d4a45, #2d2a25);
+            border: 2px solid #4d4a45;
+            border-top-color: #6a6660;
+            border-left-color: #5a5650;
+            border-right-color: #2a2824;
+            border-bottom-color: #1a1815;
+            color: #c8c0b8;
+            padding: 4px 18px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            font-family: 'Courier New', monospace;
+            transition: background 0.1s, color 0.1s, border 0.1s, border-radius 0.3s;
+            border-radius: 0;
+        }
+        .loading-screen .load-cancel:hover {
+            background: linear-gradient(180deg, #6a6660, #4d4a45);
+            color: #fff;
+        }
+
+        /* ---------- Чёрный экран ---------- */
+        #black-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 999;
+            background: #000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            color: #fff;
+            font-family: 'Courier New', monospace;
+        }
+        #black-screen.active {
+            display: flex;
+        }
+        #black-screen .success-msg {
+            font-size: 3rem;
+            font-weight: 700;
+            letter-spacing: 4px;
+            text-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
+            display: none;
+        }
+        #black-screen .success-msg.show {
+            display: block;
+        }
+        #black-screen .success-btn {
+            margin-top: 30px;
+            background: linear-gradient(180deg, #4d4a45, #2d2a25);
+            border: 2px solid #6a6660;
+            border-top-color: #8a8678;
+            border-left-color: #7a7668;
+            border-right-color: #4a4638;
+            border-bottom-color: #2a2818;
+            color: #d0c8c0;
+            padding: 6px 28px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-family: 'Courier New', monospace;
+            transition: background 0.1s, color 0.1s, border 0.1s, border-radius 0.3s;
+            border-radius: 0;
+            display: none;
+        }
+        #black-screen .success-btn.show {
+            display: block;
+        }
+        #black-screen .success-btn:hover {
+            background: linear-gradient(180deg, #6a6660, #4d4a45);
+            color: #fff;
+        }
+
+        /* ---------- Уведомление ---------- */
+        #notification-dialog .dialog-body {
+            text-align: center;
+            font-size: 1.1rem;
+            padding: 30px 20px;
+        }
+        #notification-dialog .notification-icon {
+            font-size: 2.5rem;
+            display: block;
+            margin-bottom: 12px;
+            opacity: 0.6;
+        }
+
+        /* ---------- Адаптивность ---------- */
+        @media (max-width: 768px) {
+            #logo {
+                font-size: 2.2rem;
+                top: 6%;
+                left: 4%;
+            }
+            #logo small {
+                font-size: 0.8rem;
+            }
+            #main-menu {
+                top: 25%;
+                left: 4%;
+                gap: 6px;
+                min-width: 170px;
+            }
+            .menu-item {
+                font-size: 1.0rem;
+                padding: 8px 12px;
+            }
+            .dialog-window {
+                min-width: 0;
+                width: 94vw;
+                max-height: 90vh;
+            }
+            .dialog-body {
+                padding: 12px 14px;
+            }
+            .server-table th,
+            .server-table td {
+                padding: 4px 6px;
+                font-size: 0.7rem;
+            }
+            .option-row {
+                gap: 8px;
+            }
+            .option-row label {
+                min-width: 70px;
+                font-size: 0.75rem;
+            }
+            .create-row label {
+                min-width: 60px;
+                font-size: 0.75rem;
+            }
+            .tabs .tab-btn {
+                padding: 4px 10px;
+                font-size: 0.7rem;
+            }
+            .dialog-titlebar span {
+                font-size: 0.75rem;
+            }
+            .loading-screen .bar-wrap {
+                width: 280px;
+            }
+            .loading-screen .load-text {
+                font-size: 1.6rem;
+            }
+            #black-screen .success-msg {
+                font-size: 2.2rem;
+            }
+            .mod-item {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 6px;
+            }
+            .mod-actions {
+                justify-content: flex-start;
+            }
+            .soundtrack-item {
+                flex-wrap: wrap;
+                gap: 4px;
+            }
+            .soundtrack-item .track-name {
+                flex: 1 1 100%;
+            }
+            .inventory-grid {
+                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            }
+        }
+
+        @media (max-width: 480px) {
+            #logo {
+                font-size: 1.6rem;
+                top: 4%;
+            }
+            #logo small {
+                font-size: 0.6rem;
+            }
+            #main-menu {
+                top: 20%;
+                left: 3%;
+                min-width: 130px;
+            }
+            .menu-item {
+                font-size: 0.85rem;
+                padding: 6px 10px;
+            }
+            .dialog-window {
+                width: 96vw;
+                max-height: 92vh;
+            }
+            .server-table th,
+            .server-table td {
+                padding: 3px 4px;
+                font-size: 0.6rem;
+            }
+            .server-table .col-players {
+                width: 50px;
+            }
+            .server-table .col-ping {
+                width: 36px;
+            }
+            .server-table .col-map {
+                width: 56px;
+            }
+            .dialog-footer button {
+                padding: 4px 12px;
+                font-size: 0.7rem;
+            }
+            .loading-screen .bar-wrap {
+                width: 200px;
+            }
+            .loading-screen .load-text {
+                font-size: 1.2rem;
+            }
+            #black-screen .success-msg {
+                font-size: 1.8rem;
+            }
+            .mod-item {
+                padding: 8px 10px;
+            }
+            .mod-info .mod-name {
+                font-size: 0.8rem;
+            }
+            .mod-actions button {
+                font-size: 0.7rem;
+                padding: 3px 10px;
+            }
+            .soundtrack-item .track-actions button {
+                font-size: 0.65rem;
+                padding: 2px 8px;
+            }
+            .inventory-grid {
+                grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+            }
+        }
+
+        /* скролл-бар */
+        .dialog-body::-webkit-scrollbar {
+            width: 10px;
+            background: #2a2824;
+        }
+        .dialog-body::-webkit-scrollbar-track {
+            background: #2a2824;
+            border-left: 1px solid #4d4a45;
+        }
+        .dialog-body::-webkit-scrollbar-thumb {
+            background: #4d4a45;
+            border: 1px solid #6a6660;
+            border-top-color: #7a7668;
+            border-left-color: #6a6660;
+            border-right-color: #3d3a35;
+            border-bottom-color: #2a2818;
+        }
+        .dialog-body::-webkit-scrollbar-thumb:hover {
+            background: #6a6660;
+        }
+    </style>
+</head>
+<body>
+    <!-- ===== ФОН ===== -->
+    <div id="bg-scene"></div>
+
+    <!-- ===== ЛОГОТИП ===== -->
+    <div id="logo">
+        Counter-Strike
+        <small>SOURCE</small>
+    </div>
+
+    <!-- ===== ГЛАВНОЕ МЕНЮ ===== -->
+    <nav id="main-menu" role="menu">
+        <button class="menu-item" data-action="find-servers" data-i18n="menu_find">Find Servers <small>⇢</small></button>
+        <button class="menu-item" data-action="create-server" data-i18n="menu_create">Create Server <small>⇢</small></button>
+        <button class="menu-item" data-action="options" data-i18n="menu_options">Options <small>⇢</small></button>
+        <button class="menu-item" data-action="inventory" data-i18n="menu_inventory">Inventory</button>
+        <button class="menu-item" data-action="soundtracks" data-i18n="menu_soundtracks">Soundtracks</button>
+        <div class="menu-divider"></div>
+    </nav>
+
+    <!-- ===== ДИАЛОГ: FIND SERVERS ===== -->
+    <div class="dialog-overlay" id="find-servers-dialog">
+        <div class="dialog-window" style="min-width:540px;">
+            <div class="dialog-titlebar">
+                <span data-i18n="title_find">Find Servers</span>
+                <button class="dialog-close" data-close="find-servers-dialog">✕</button>
+            </div>
+            <div class="dialog-body">
+                <div class="server-table-wrap">
+                    <table class="server-table" id="server-table">
+                        <thead>
+                            <tr>
+                                <th class="col-pw" data-i18n="th_pw">PW</th>
+                                <th class="col-secure" data-i18n="th_sec">Sec</th>
+                                <th data-i18n="th_name">Server Name</th>
+                                <th class="col-players" data-i18n="th_players">Players</th>
+                                <th class="col-ping" data-i18n="th_ping">Ping</th>
+                                <th class="col-map" data-i18n="th_map">Map</th>
+                            </tr>
+                        </thead>
+                        <tbody id="server-tbody"></tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="dialog-footer">
+                <button class="primary" id="btn-connect" disabled data-i18n="btn_connect">Connect</button>
+                <button data-close="find-servers-dialog" data-i18n="btn_cancel">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== ДИАЛОГ: CREATE SERVER ===== -->
+    <div class="dialog-overlay" id="create-server-dialog">
+        <div class="dialog-window" style="min-width:400px;">
+            <div class="dialog-titlebar">
+                <span data-i18n="title_create">Create Server</span>
+                <button class="dialog-close" data-close="create-server-dialog">✕</button>
+            </div>
+            <div class="dialog-body">
+                <div class="create-row">
+                    <label data-i18n="label_map">Map</label>
+                    <select id="map-select">
+                        <option value="de_dust2">de_dust2</option>
+                        <option value="de_aztec">de_aztec</option>
+                        <option value="cs_office">cs_office</option>
+                        <option value="de_inferno">de_inferno</option>
+                    </select>
+                </div>
+                <div class="create-row">
+                    <label data-i18n="label_bots">Bots</label>
+                    <input type="number" id="bot-count" value="8" min="0" max="31" />
+                </div>
+            </div>
+            <div class="dialog-footer">
+                <button class="primary" id="btn-start-server" data-i18n="btn_start">Start</button>
+                <button data-close="create-server-dialog" data-i18n="btn_cancel">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== ДИАЛОГ: OPTIONS ===== -->
+    <div class="dialog-overlay" id="options-dialog">
+        <div class="dialog-window" style="min-width:480px;">
+            <div class="dialog-titlebar">
+                <span data-i18n="title_options">Options</span>
+                <button class="dialog-close" data-close="options-dialog">✕</button>
+            </div>
+            <div class="dialog-body">
+                <div class="tabs" id="options-tabs">
+                    <button class="tab-btn active" data-tab="multiplayer" data-i18n="tab_multi">Multiplayer</button>
+                    <button class="tab-btn" data-tab="keyboard" data-i18n="tab_keyb">Keyboard</button>
+                    <button class="tab-btn" data-tab="audio" data-i18n="tab_audio">Audio</button>
+                    <button class="tab-btn" data-tab="video" data-i18n="tab_video">Video</button>
+                    <button class="tab-btn" data-tab="mods" data-i18n="tab_mods">Mods</button>
+                    <button class="tab-btn" data-tab="downloads" data-i18n="tab_downloads">Download Mods</button>
+                    <button class="tab-btn" data-tab="language" data-i18n="tab_lang">Language</button>
+                </div>
+
+                <div class="tab-content active" id="tab-multiplayer">
+                    <div class="option-row">
+                        <label data-i18n="label_sens">Sensitivity</label>
+                        <input type="range" id="sensitivity-slider" min="0.5" max="10" step="0.1" value="2.5" />
+                        <span class="value-display" id="sensitivity-val">2.5</span>
+                    </div>
+                    <div class="option-row">
+                        <label data-i18n="label_name">Player name</label>
+                        <input type="text" id="player-name" placeholder="Enter name..." value="Player" />
+                    </div>
+                    <div class="option-row" style="margin-top:6px;">
+                        <span class="hint" data-i18n="hint_save">Settings saved automatically.</span>
+                    </div>
+                </div>
+
+                <div class="tab-content" id="tab-keyboard">
+                    <div style="color:#6a625a; font-size:0.85rem; padding:8px 0;" data-i18n="keyb_bindings">
+                        Keyboard bindings:<br />
+                        <span style="color:#8a827a;">W A S D</span> — Move<br />
+                        <span style="color:#8a827a;">Mouse1</span> — Fire<br />
+                        <span style="color:#8a827a;">R</span> — Reload<br />
+                        <span style="color:#8a827a;">B</span> — Buy Menu
+                    </div>
+                </div>
+
+                <div class="tab-content" id="tab-audio">
+                    <div style="color:#6a625a; font-size:0.85rem; padding:8px 0;" data-i18n="audio_settings">
+                        Master Volume: <span style="color:#8a827a;">100%</span><br />
+                        Sound Quality: <span style="color:#8a827a;">High</span><br />
+                        Voice Chat: <span style="color:#8a827a;">Enabled</span>
+                    </div>
+                </div>
+
+                <div class="tab-content" id="tab-video">
+                    <div style="color:#6a625a; font-size:0.85rem; padding:8px 0;" data-i18n="video_settings">
+                        Resolution: <span style="color:#8a827a;">1920×1080</span><br />
+                        Quality: <span style="color:#8a827a;">High</span><br />
+                        V-Sync: <span style="color:#8a827a;">Off</span>
+                    </div>
+                </div>
+
+                <div class="tab-content" id="tab-mods">
+                    <div style="color:#b0a8a0; font-size:0.85rem; padding:4px 0;" data-i18n="mods_list">
+                        Installed mods:
+                        <ul class="mods-list" id="installed-mods-list">
+                            <li>Counter-Strike: Source <span>v1.0</span></li>
+                            <li>Day of Defeat: Source <span>v1.2</span></li>
+                            <li>Half-Life 2: Deathmatch <span>v1.0</span></li>
+                            <li>Garry's Mod (legacy) <span>v9</span></li>
+                        </ul>
+                        <div style="margin-top:8px; color:#6a625a; font-size:0.75rem;" data-i18n="mods_hint">
+                            Select a mod to activate (not implemented).
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Вкладка Скачать моды -->
+                <div class="tab-content" id="tab-downloads">
+                    <div style="color:#b0a8a0; font-size:0.85rem; padding:4px 0; margin-bottom:8px;" data-i18n="downloads_desc">
+                        Download and install community mods:
+                    </div>
+                    <div class="mods-catalog" id="mods-catalog">
+                        <!-- Заполняется из JavaScript -->
+                    </div>
+                </div>
+
+                <!-- Вкладка Language -->
+                <div class="tab-content" id="tab-language">
+                    <div class="option-row">
+                        <label data-i18n="label_lang">Language</label>
+                        <select class="lang-select" id="lang-select">
+                            <option value="en">English</option>
+                            <option value="ru">Русский</option>
+                        </select>
+                    </div>
+                    <div style="color:#6a625a; font-size:0.75rem; margin-top:6px;" data-i18n="lang_hint">
+                        Interface language will change immediately.
+                    </div>
+                </div>
+            </div>
+            <div class="dialog-footer">
+                <button data-close="options-dialog" data-i18n="btn_apply">Apply</button>
+                <button data-close="options-dialog" data-i18n="btn_cancel">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== ДИАЛОГ: QUIT CONFIRM (уже не используется, но оставлен для совместимости) ===== -->
+    <div class="dialog-overlay" id="quit-dialog">
+        <div class="dialog-window" style="min-width:360px;">
+            <div class="dialog-titlebar">
+                <span data-i18n="title_quit">Quit</span>
+                <button class="dialog-close" data-close="quit-dialog">✕</button>
+            </div>
+            <div class="dialog-body">
+                <div class="confirm-text" data-i18n="quit_confirm">
+                    <span class="icon">✖</span>
+                    Are you sure you want to quit<br />Counter-Strike?
+                </div>
+            </div>
+            <div class="dialog-footer">
+                <button class="primary" id="btn-quit-confirm" data-i18n="btn_yes">Yes</button>
+                <button data-close="quit-dialog" data-i18n="btn_no">No</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== ДИАЛОГ: CONNECTING ===== -->
+    <div class="dialog-overlay" id="connecting-dialog">
+        <div class="dialog-window" style="min-width:340px;">
+            <div class="dialog-titlebar">
+                <span data-i18n="title_connecting">Connecting</span>
+                <button class="dialog-close" data-close="connecting-dialog">✕</button>
+            </div>
+            <div class="dialog-body">
+                <div class="connecting-box">
+                    <div class="spinner"></div>
+                    <div class="msg" data-i18n="msg_connecting">Connecting to server...</div>
+                    <div class="sub" id="connecting-server-name">[RU] Dust2 Only 24/7</div>
+                </div>
+            </div>
+            <div class="dialog-footer">
+                <button data-close="connecting-dialog" data-i18n="btn_cancel">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== ЭКРАН ЗАГРУЗКИ ===== -->
+    <div class="loading-screen" id="loading-screen">
+        <div class="load-text" data-i18n="load_loading">Loading</div>
+        <div class="load-sub" id="load-map-name">de_dust2</div>
+        <div class="bar-wrap">
+            <div class="bar-fill" id="load-bar"></div>
+        </div>
+        <div class="load-stage" id="load-stage-text">Initializing...</div>
+        <button class="load-cancel" id="load-cancel-btn" data-i18n="btn_cancel">Cancel</button>
+    </div>
+
+    <!-- ===== ЧЁРНЫЙ ЭКРАН ===== -->
+    <div id="black-screen">
+        <div class="success-msg" id="success-msg" data-i18n="success_text">Успешно</div>
+        <button class="success-btn" id="success-btn" data-i18n="btn_ok">Ок</button>
+    </div>
+
+    <!-- ===== ДИАЛОГ ВЫБОРА ВИДЕОКАРТЫ ===== -->
+    <div class="dialog-overlay" id="gpu-dialog">
+        <div class="dialog-window" style="min-width:400px;">
+            <div class="dialog-titlebar">
+                <span data-i18n="title_gpu">Select GPU</span>
+                <button class="dialog-close" data-close="gpu-dialog">✕</button>
+            </div>
+            <div class="dialog-body">
+                <div style="color:#b0a8a0; font-size:0.85rem; padding:4px 0;" data-i18n="gpu_desc">
+                    Please select your graphics card for optimal settings:
+                </div>
+                <div style="margin-top:14px;">
+                    <select class="lang-select" id="gpu-select" style="width:100%;">
+                        <option value="nvidia">NVIDIA GeForce</option>
+                        <option value="amd">AMD Radeon</option>
+                        <option value="intel">Intel HD Graphics</option>
+                        <option value="other">Other / Unknown</option>
+                    </select>
+                </div>
+            </div>
+            <div class="dialog-footer">
+                <button class="primary" id="gpu-continue" data-i18n="btn_continue">Continue</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== ДИАЛОГ УВЕДОМЛЕНИЙ ===== -->
+    <div class="dialog-overlay" id="notification-dialog">
+        <div class="dialog-window" style="min-width:400px; max-width:90vw;">
+            <div class="dialog-titlebar">
+                <span data-i18n="title_notify">Message</span>
+                <button class="dialog-close" id="notification-close">✕</button>
+            </div>
+            <div class="dialog-body">
+                <span class="notification-icon" id="notif-icon"></span>
+                <div id="notification-text" style="word-wrap: break-word;">Connected to server!</div>
+            </div>
+            <div class="dialog-footer">
+                <button class="primary" id="notification-ok" data-i18n="btn_ok">OK</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== ДИАЛОГ: INVENTORY ===== -->
+    <div class="dialog-overlay" id="inventory-dialog">
+        <div class="dialog-window" style="min-width:500px; max-width:95vw; max-height:90vh;">
+            <div class="dialog-titlebar">
+                <span data-i18n="title_inventory">Inventory</span>
+                <button class="dialog-close" data-close="inventory-dialog">✕</button>
+            </div>
+            <div class="dialog-body">
+                <div id="inventory-content">
+                    <!-- Заполняется из JavaScript -->
+                </div>
+            </div>
+            <div class="dialog-footer">
+                <button data-close="inventory-dialog" data-i18n="btn_close">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== ДИАЛОГ: SOUNDTRACKS ===== -->
+    <div class="dialog-overlay" id="soundtracks-dialog">
+        <div class="dialog-window" style="min-width:500px; max-width:95vw; max-height:90vh;">
+            <div class="dialog-titlebar">
+                <span data-i18n="title_soundtracks">Soundtracks</span>
+                <button class="dialog-close" data-close="soundtracks-dialog">✕</button>
+            </div>
+            <div class="dialog-body">
+                <div style="color:#b0a8a0; font-size:0.85rem; padding:4px 0; margin-bottom:10px;" data-i18n="soundtracks_desc">
+                    Listen to the best tracks from CS:GO and CS2:
+                </div>
+                <div class="soundtrack-list" id="soundtrack-list">
+                    <!-- Заполняется из JavaScript -->
+                </div>
+            </div>
+            <div class="dialog-footer">
+                <button data-close="soundtracks-dialog" data-i18n="btn_close">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== HUD ===== -->
+    <div id="hud-container">
+        <div id="hud-score">0 : 0</div>
+        <div class="hud-avatars hud-avatars-left" id="hud-avatars-left"></div>
+        <div class="hud-avatars hud-avatars-right" id="hud-avatars-right"></div>
+        <div id="hud-hp-armor">
+            <div class="hud-bar-container">
+                <label>HP</label>
+                <div class="hud-bar-track">
+                    <div class="hud-bar-fill hp" id="hud-hp-fill" style="width:100%;"></div>
+                </div>
+                <span class="hud-bar-text" id="hud-hp-text">100</span>
+            </div>
+            <div class="hud-bar-container">
+                <label>Armor</label>
+                <div class="hud-bar-track">
+                    <div class="hud-bar-fill armor" id="hud-armor-fill" style="width:100%;"></div>
+                </div>
+                <span class="hud-bar-text" id="hud-armor-text">100</span>
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        (function() {
+            'use strict';
+
+            // ---------- ПЕРЕВОДЫ (дополненные) ----------
+            const translations = {
+                en: {
+                    menu_find: 'Find Servers ⇢',
+                    menu_create: 'Create Server ⇢',
+                    menu_options: 'Options ⇢',
+                    menu_inventory: 'Inventory',
+                    menu_soundtracks: 'Soundtracks',
+                    title_find: 'Find Servers',
+                    title_create: 'Create Server',
+                    title_options: 'Options',
+                    title_quit: 'Quit',
+                    title_connecting: 'Connecting',
+                    title_gpu: 'Select GPU',
+                    title_notify: 'Message',
+                    title_inventory: 'Inventory',
+                    title_soundtracks: 'Soundtracks',
+                    th_pw: 'PW',
+                    th_sec: 'Sec',
+                    th_name: 'Server Name',
+                    th_players: 'Players',
+                    th_ping: 'Ping',
+                    th_map: 'Map',
+                    btn_connect: 'Connect',
+                    btn_cancel: 'Cancel',
+                    btn_start: 'Start',
+                    btn_apply: 'Apply',
+                    btn_yes: 'Yes',
+                    btn_no: 'No',
+                    btn_continue: 'Continue',
+                    btn_ok: 'OK',
+                    btn_close: 'Close',
+                    label_map: 'Map',
+                    label_bots: 'Bots',
+                    label_sens: 'Sensitivity',
+                    label_name: 'Player name',
+                    hint_save: 'Settings saved automatically.',
+                    keyb_bindings: 'Keyboard bindings:<br /><span style="color:#8a827a;">W A S D</span> — Move<br /><span style="color:#8a827a;">Mouse1</span> — Fire<br /><span style="color:#8a827a;">R</span> — Reload<br /><span style="color:#8a827a;">B</span> — Buy Menu',
+                    audio_settings: 'Master Volume: <span style="color:#8a827a;">100%</span><br />Sound Quality: <span style="color:#8a827a;">High</span><br />Voice Chat: <span style="color:#8a827a;">Enabled</span>',
+                    video_settings: 'Resolution: <span style="color:#8a827a;">1920×1080</span><br />Quality: <span style="color:#8a827a;">High</span><br />V-Sync: <span style="color:#8a827a;">Off</span>',
+                    mods_list: 'Installed mods:',
+                    mods_hint: 'Select a mod to activate (not implemented).',
+                    downloads_desc: 'Download and install community mods:',
+                    label_lang: 'Language',
+                    lang_hint: 'Interface language will change immediately.',
+                    tab_multi: 'Multiplayer',
+                    tab_keyb: 'Keyboard',
+                    tab_audio: 'Audio',
+                    tab_video: 'Video',
+                    tab_mods: 'Mods',
+                    tab_downloads: 'Download Mods',
+                    tab_lang: 'Language',
+                    quit_confirm: '✖<br />Are you sure you want to quit<br />Counter-Strike?',
+                    msg_connecting: 'Connecting to server...',
+                    load_loading: 'Loading',
+                    gpu_desc: 'Please select your graphics card for optimal settings:',
+                    success_text: 'Success',
+                    mod_download: 'Download',
+                    mod_installed: 'Installed',
+                    mod_downloading: 'Downloading...',
+                    mod_install: 'Install',
+                    mod_uninstall: 'Uninstall',
+                    mod_installed_notif: 'Mod installed successfully!',
+                    mod_uninstalled_notif: 'Mod uninstalled successfully!',
+                    soundtracks_desc: 'Listen to the best tracks from CS:GO and CS2:',
+                    now_playing: 'Now playing',
+                    stopped: 'Stopped',
+                    track_play: 'Play',
+                    track_stop: 'Stop',
+                    // Inventory
+                    category_grenades: 'Grenades',
+                    category_armor: 'Armor & Gear',
+                    category_money: 'Money',
+                    item_he: 'HE Grenade',
+                    item_flash: 'Flashbang',
+                    item_smoke: 'Smoke Grenade',
+                    item_molotov: 'Molotov / Incendiary',
+                    item_decoy: 'Decoy',
+                    item_kevlar: 'Kevlar Vest',
+                    item_kevlar_helmet: 'Kevlar + Helmet',
+                    item_defuse: 'Defuse Kit',
+                    item_zeus: 'Zeus x27',
+                    money: 'Money',
+                },
+                ru: {
+                    menu_find: 'Найти серверы ⇢',
+                    menu_create: 'Создать сервер ⇢',
+                    menu_options: 'Настройки ⇢',
+                    menu_inventory: 'Инвентарь',
+                    menu_soundtracks: 'Саундтреки',
+                    title_find: 'Поиск серверов',
+                    title_create: 'Создание сервера',
+                    title_options: 'Настройки',
+                    title_quit: 'Выход',
+                    title_connecting: 'Подключение',
+                    title_gpu: 'Выбор видеокарты',
+                    title_notify: 'Сообщение',
+                    title_inventory: 'Инвентарь',
+                    title_soundtracks: 'Саундтреки',
+                    th_pw: 'Пароль',
+                    th_sec: 'Защита',
+                    th_name: 'Имя сервера',
+                    th_players: 'Игроки',
+                    th_ping: 'Пинг',
+                    th_map: 'Карта',
+                    btn_connect: 'Подключиться',
+                    btn_cancel: 'Отмена',
+                    btn_start: 'Запуск',
+                    btn_apply: 'Применить',
+                    btn_yes: 'Да',
+                    btn_no: 'Нет',
+                    btn_continue: 'Продолжить',
+                    btn_ok: 'Ок',
+                    btn_close: 'Закрыть',
+                    label_map: 'Карта',
+                    label_bots: 'Боты',
+                    label_sens: 'Чувствительность',
+                    label_name: 'Имя игрока',
+                    hint_save: 'Настройки сохраняются автоматически.',
+                    keyb_bindings: 'Управление:<br /><span style="color:#8a827a;">W A S D</span> — Движение<br /><span style="color:#8a827a;">Mouse1</span> — Огонь<br /><span style="color:#8a827a;">R</span> — Перезарядка<br /><span style="color:#8a827a;">B</span> — Меню покупки',
+                    audio_settings: 'Громкость: <span style="color:#8a827a;">100%</span><br />Качество звука: <span style="color:#8a827a;">Высокое</span><br />Голосовой чат: <span style="color:#8a827a;">Вкл</span>',
+                    video_settings: 'Разрешение: <span style="color:#8a827a;">1920×1080</span><br />Качество: <span style="color:#8a827a;">Высокое</span><br />Вертикальная синхр.: <span style="color:#8a827a;">Выкл</span>',
+                    mods_list: 'Установленные моды:',
+                    mods_hint: 'Выберите мод для активации (не реализовано).',
+                    downloads_desc: 'Скачайте и установите моды сообщества:',
+                    label_lang: 'Язык',
+                    lang_hint: 'Язык интерфейса изменится сразу.',
+                    tab_multi: 'Сетевая игра',
+                    tab_keyb: 'Клавиатура',
+                    tab_audio: 'Звук',
+                    tab_video: 'Видео',
+                    tab_mods: 'Моды',
+                    tab_downloads: 'Скачать моды',
+                    tab_lang: 'Язык',
+                    quit_confirm: '✖<br />Вы уверены, что хотите выйти<br />из Counter-Strike?',
+                    msg_connecting: 'Подключение к серверу...',
+                    load_loading: 'Загрузка',
+                    gpu_desc: 'Выберите вашу видеокарту для оптимальной настройки:',
+                    success_text: 'Успешно',
+                    mod_download: 'Скачать',
+                    mod_installed: 'Установлено',
+                    mod_downloading: 'Загрузка...',
+                    mod_install: 'Установить',
+                    mod_uninstall: 'Удалить',
+                    mod_installed_notif: 'Мод успешно установлен!',
+                    mod_uninstalled_notif: 'Мод успешно удалён!',
+                    soundtracks_desc: 'Слушайте лучшие треки из CS:GO и CS2:',
+                    now_playing: 'Сейчас играет',
+                    stopped: 'Остановлено',
+                    track_play: 'Играть',
+                    track_stop: 'Стоп',
+                    // Inventory
+                    category_grenades: 'Гранаты',
+                    category_armor: 'Броня и снаряжение',
+                    category_money: 'Деньги',
+                    item_he: 'HE Граната',
+                    item_flash: 'Светошумовая',
+                    item_smoke: 'Дымовая граната',
+                    item_molotov: 'Молотов / Зажигательная',
+                    item_decoy: 'Ложная граната',
+                    item_kevlar: 'Бронежилет',
+                    item_kevlar_helmet: 'Бронежилет + Шлем',
+                    item_defuse: 'Набор для разминирования',
+                    item_zeus: 'Zeus x27',
+                    money: 'Деньги',
+                }
+            };
+
+            let currentLang = 'en';
+
+            // ---------- DOM ----------
+            const logo = document.getElementById('logo');
+            const mainMenu = document.getElementById('main-menu');
+
+            function showMainInterface() {
+                logo.style.display = 'block';
+                mainMenu.style.display = 'flex';
+            }
+
+            // ---------- ОСТАЛЬНЫЕ DOM ----------
+            const menuItems = document.querySelectorAll('.menu-item');
+            const overlays = document.querySelectorAll('.dialog-overlay');
+            const closeBtns = document.querySelectorAll('[data-close]');
+
+            const serverTbody = document.getElementById('server-tbody');
+            const btnConnect = document.getElementById('btn-connect');
+
+            const createDialog = document.getElementById('create-server-dialog');
+            const mapSelect = document.getElementById('map-select');
+            const botCount = document.getElementById('bot-count');
+            const btnStart = document.getElementById('btn-start-server');
+
+            const optionsDialog = document.getElementById('options-dialog');
+            const sensitivitySlider = document.getElementById('sensitivity-slider');
+            const sensitivityVal = document.getElementById('sensitivity-val');
+            const playerNameInput = document.getElementById('player-name');
+            const tabBtns = document.querySelectorAll('.tab-btn');
+            const tabContents = document.querySelectorAll('.tab-content');
+
+            const quitDialog = document.getElementById('quit-dialog');
+            const btnQuitConfirm = document.getElementById('btn-quit-confirm');
+
+            const connectingDialog = document.getElementById('connecting-dialog');
+            const connectingServerName = document.getElementById('connecting-server-name');
+
+            const loadingScreen = document.getElementById('loading-screen');
+            const loadBar = document.getElementById('load-bar');
+            const loadMapName = document.getElementById('load-map-name');
+            const loadStageText = document.getElementById('load-stage-text');
+            const loadCancelBtn = document.getElementById('load-cancel-btn');
+
+            const gpuDialog = document.getElementById('gpu-dialog');
+            const gpuSelect = document.getElementById('gpu-select');
+            const gpuContinue = document.getElementById('gpu-continue');
+
+            const blackScreen = document.getElementById('black-screen');
+            const successMsg = document.getElementById('success-msg');
+            const successBtn = document.getElementById('success-btn');
+
+            const langSelect = document.getElementById('lang-select');
+
+            const notifDialog = document.getElementById('notification-dialog');
+            const notifText = document.getElementById('notification-text');
+            const notifOk = document.getElementById('notification-ok');
+            const notifClose = document.getElementById('notification-close');
+
+            const modsCatalog = document.getElementById('mods-catalog');
+
+            // Саундтреки
+            const soundtracksList = document.getElementById('soundtrack-list');
+
+            // Инвентарь
+            const inventoryContent = document.getElementById('inventory-content');
+
+            // HUD
+            const hudContainer = document.getElementById('hud-container');
+            const hudScore = document.getElementById('hud-score');
+            const hudAvatarsLeft = document.getElementById('hud-avatars-left');
+            const hudAvatarsRight = document.getElementById('hud-avatars-right');
+            const hudHpFill = document.getElementById('hud-hp-fill');
+            const hudHpText = document.getElementById('hud-hp-text');
+            const hudArmorFill = document.getElementById('hud-armor-fill');
+            const hudArmorText = document.getElementById('hud-armor-text');
+
+            // ---------- ЗВУК ----------
+            let audioCtx = null;
+
+            function getAudioContext() {
+                if (!audioCtx) {
+                    audioCtx = new(window.AudioContext || window.webkitAudioContext)();
+                }
+                return audioCtx;
+            }
+
+            function playClickSound() {
+                try {
+                    const ctx = getAudioContext();
+                    const now = ctx.currentTime;
+                    const bufferSize = ctx.sampleRate * 0.035;
+                    const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+                    const data = buffer.getChannelData(0);
+                    for (let i = 0; i < bufferSize; i++) {
+                        const env = Math.exp(-i / (bufferSize * 0.3));
+                        const noise = (Math.random() * 2 - 1) * 0.6;
+                        data[i] = noise * env * 0.5;
+                    }
+                    const source = ctx.createBufferSource();
+                    source.buffer = buffer;
+                    const gain = ctx.createGain();
+                    gain.gain.value = 0.25;
+                    source.connect(gain);
+                    gain.connect(ctx.destination);
+                    source.start(now);
+                } catch (_) {}
+            }
+
+            // ---------- ДАННЫЕ СЕРВЕРОВ ----------
+            const serversData = [{
+                password: false,
+                secure: true,
+                name: '[RU] Dust2 Only 24/7',
+                players: '22/32',
+                ping: 42,
+                map: 'de_dust2'
+            }, {
+                password: true,
+                secure: true,
+                name: 'Public Classic CSS',
+                players: '18/24',
+                ping: 68,
+                map: 'de_dust2'
+            }, {
+                password: false,
+                secure: false,
+                name: 'Noob Squad Server',
+                players: '8/16',
+                ping: 120,
+                map: 'de_aztec'
+            }, {
+                password: false,
+                secure: true,
+                name: 'Pro Aim Map',
+                players: '4/10',
+                ping: 35,
+                map: 'de_inferno'
+            }, {
+                password: true,
+                secure: true,
+                name: 'DE_Office Only',
+                players: '14/20',
+                ping: 55,
+                map: 'cs_office'
+            }, {
+                password: false,
+                secure: true,
+                name: 'Dust2 Deathmatch',
+                players: '30/32',
+                ping: 89,
+                map: 'de_dust2'
+            }];
+
+            let selectedServerIndex = -1;
+            let loadInterval = null;
+            let isLoading = false;
+
+            // ---------- ДАННЫЕ МОДОВ ----------
+            const availableMods = [{
+                id: 'skin_ak47',
+                name: 'AK-47 Redline Skin',
+                desc: 'New high-quality skin for AK-47',
+                size: '12 MB',
+                status: 'available'
+            }, {
+                id: 'map_de_dust3',
+                name: 'de_dust3 (Beta)',
+                desc: 'New community map in dust style',
+                size: '45 MB',
+                status: 'available'
+            }, {
+                id: 'visual_hd_models',
+                name: 'HD Weapon Models',
+                desc: 'High-resolution weapon models',
+                size: '28 MB',
+                status: 'available'
+            }, {
+                id: 'ui_dark_theme',
+                name: 'Dark UI Theme',
+                desc: 'Darker interface with pixel-perfect fonts',
+                size: '6 MB',
+                status: 'available'
+            }, {
+                id: 'sound_pack_classic',
+                name: 'Classic Sound Pack',
+                desc: 'Original CS 1.6 sounds',
+                size: '18 MB',
+                status: 'available'
+            }, {
+                id: 'interface_modern',
+                name: 'Modern UI Overhaul',
+                desc: 'Complete interface redesign with rounded corners, gradients, and modern look',
+                size: '8 MB',
+                status: 'available'
+            }];
+
+            // ---------- ДАННЫЕ САУНДТРЕКОВ (очень много) ----------
+            const soundtracks = [
+                { id: 'csgo_main', name: 'CS:GO Main Menu Theme', duration: '2:30' },
+                { id: 'cs2_main', name: 'CS2 Main Menu Theme', duration: '3:00' },
+                { id: 'bomb_10', name: 'Bomb Timer - 10 Seconds', duration: '0:10' },
+                { id: 'bomb_5', name: 'Bomb Timer - 5 Seconds', duration: '0:05' },
+                { id: 'bomb_3', name: 'Bomb Timer - 3 Seconds', duration: '0:03' },
+                { id: 'round_win_ct', name: 'Round Win - Counter-Terrorists', duration: '0:12' },
+                { id: 'round_win_t', name: 'Round Win - Terrorists', duration: '0:12' },
+                { id: 'round_loss', name: 'Round Loss', duration: '0:10' },
+                { id: 'mvp_ct', name: 'MVP - Counter-Terrorists', duration: '0:15' },
+                { id: 'mvp_t', name: 'MVP - Terrorists', duration: '0:15' },
+                { id: 'deathmatch_start', name: 'Deathmatch Start', duration: '0:08' },
+                { id: 'deathmatch_end', name: 'Deathmatch End', duration: '0:08' },
+                { id: 'casual_start', name: 'Casual Start', duration: '0:10' },
+                { id: 'casual_end', name: 'Casual End', duration: '0:10' },
+                { id: 'competitive_start', name: 'Competitive Start', duration: '0:12' },
+                { id: 'competitive_end', name: 'Competitive End', duration: '0:12' },
+                { id: 'wingman_start', name: 'Wingman Start', duration: '0:10' },
+                { id: 'wingman_end', name: 'Wingman End', duration: '0:10' },
+                { id: 'dangerzone_start', name: 'Danger Zone Start', duration: '0:10' },
+                { id: 'dangerzone_end', name: 'Danger Zone End', duration: '0:10' },
+                { id: 'armsrace_start', name: 'Arms Race Start', duration: '0:10' },
+                { id: 'armsrace_end', name: 'Arms Race End', duration: '0:10' },
+                { id: 'demolition_start', name: 'Demolition Start', duration: '0:10' },
+                { id: 'demolition_end', name: 'Demolition End', duration: '0:10' },
+                { id: 'freeze_time', name: 'Freeze Time', duration: '0:15' },
+                { id: 'halftime', name: 'Half-Time', duration: '0:20' },
+                { id: 'match_point', name: 'Match Point', duration: '0:15' },
+                { id: 'overtime_start', name: 'Overtime Start', duration: '0:10' },
+                { id: 'overtime_end', name: 'Overtime End', duration: '0:10' },
+                { id: 'talos_principle', name: 'Music Pack: The Talos Principle', duration: '2:00' },
+                { id: 'hotline_miami', name: 'Music Pack: Hotline Miami', duration: '2:15' },
+                { id: 'beast', name: 'Music Pack: Beast', duration: '1:45' },
+                { id: 'neo_noir', name: 'Music Pack: Neo Noir', duration: '2:10' },
+                { id: 'desert_fire', name: 'Music Pack: Desert Fire', duration: '2:05' },
+                { id: 'asteria', name: 'Music Pack: Asteria', duration: '2:20' },
+                { id: 'indigo', name: 'Music Pack: Indigo', duration: '1:55' },
+                { id: 'lions_pride', name: 'Music Pack: Lion\'s Pride', duration: '2:12' },
+                { id: 'tigris', name: 'Music Pack: Tigris', duration: '2:08' },
+                { id: 'balkan', name: 'Music Pack: Balkan', duration: '2:18' },
+                { id: 'wing', name: 'Music Pack: Wing', duration: '1:50' },
+                { id: 'stinger', name: 'Music Pack: Stinger', duration: '2:02' },
+                { id: 'danger_zone_music', name: 'Music Pack: Danger Zone', duration: '2:25' },
+                { id: 'tactical', name: 'Music Pack: Tactical', duration: '2:14' },
+                { id: 'alpha', name: 'Music Pack: Alpha', duration: '2:00' },
+                { id: 'bravo', name: 'Music Pack: Bravo', duration: '2:05' },
+                { id: 'charlie', name: 'Music Pack: Charlie', duration: '1:58' },
+                { id: 'delta', name: 'Music Pack: Delta', duration: '2:10' },
+                { id: 'echo', name: 'Music Pack: Echo', duration: '2:02' },
+                { id: 'foxtrot', name: 'Music Pack: Foxtrot', duration: '1:55' },
+                { id: 'golf', name: 'Music Pack: Golf', duration: '2:08' },
+                { id: 'hotel', name: 'Music Pack: Hotel', duration: '2:12' },
+                { id: 'india', name: 'Music Pack: India', duration: '2:18' },
+                { id: 'juliett', name: 'Music Pack: Juliett', duration: '2:04' },
+                { id: 'kilo', name: 'Music Pack: Kilo', duration: '2:06' },
+                { id: 'lima', name: 'Music Pack: Lima', duration: '1:50' },
+                { id: 'mike', name: 'Music Pack: Mike', duration: '2:15' },
+                { id: 'november', name: 'Music Pack: November', duration: '2:22' },
+                { id: 'oscar', name: 'Music Pack: Oscar', duration: '2:09' },
+                { id: 'papa', name: 'Music Pack: Papa', duration: '2:00' },
+                { id: 'quebec', name: 'Music Pack: Quebec', duration: '2:11' },
+                { id: 'romeo', name: 'Music Pack: Romeo', duration: '1:58' },
+                { id: 'sierra', name: 'Music Pack: Sierra', duration: '2:14' },
+                { id: 'tango', name: 'Music Pack: Tango', duration: '2:05' },
+                { id: 'uniform', name: 'Music Pack: Uniform', duration: '2:07' },
+                { id: 'victor', name: 'Music Pack: Victor', duration: '2:03' },
+                { id: 'whiskey', name: 'Music Pack: Whiskey', duration: '2:19' },
+                { id: 'xray', name: 'Music Pack: X-ray', duration: '2:01' },
+                { id: 'yankee', name: 'Music Pack: Yankee', duration: '2:16' },
+                { id: 'zulu', name: 'Music Pack: Zulu', duration: '2:13' },
+            ];
+
+            // Состояние проигрывания саундтреков
+            let currentTrackId = null;
+            let trackTimeout = null;
+
+            // ---------- ИНВЕНТАРЬ (БЕЗ ОРУЖИЯ) ----------
+            const inventoryData = {
+                grenades: [
+                    { id: 'he', key: 'item_he', count: 1 },
+                    { id: 'flash', key: 'item_flash', count: 2 },
+                    { id: 'smoke', key: 'item_smoke', count: 1 },
+                    { id: 'molotov', key: 'item_molotov', count: 1 },
+                    { id: 'decoy', key: 'item_decoy', count: 1 },
+                ],
+                armor: [
+                    { id: 'kevlar', key: 'item_kevlar', count: 1 },
+                    { id: 'kevlar_helmet', key: 'item_kevlar_helmet', count: 1 },
+                    { id: 'defuse', key: 'item_defuse', count: 1 },
+                    { id: 'zeus', key: 'item_zeus', count: 1 },
+                ],
+                money: [
+                    { id: 'money', key: 'money', count: 16000 },
+                ]
+            };
+
+            function renderInventory() {
+                const lang = currentLang;
+                let html = '';
+
+                // Grenades
+                html +=
+                    `<div class="inventory-category" data-i18n="category_grenades">${translations[lang].category_grenades}</div>`;
+                html += `<div class="inventory-grid">`;
+                inventoryData.grenades.forEach(item => {
+                    const name = translations[lang][item.key] || item.key;
+                    html += `
+                            <div class="inventory-item">
+                                <span class="item-name">${name}</span>
+                                <span class="item-count">x${item.count}</span>
+                            </div>
+                        `;
+                });
+                html += `</div>`;
+
+                // Armor & Gear
+                html +=
+                    `<div class="inventory-category" data-i18n="category_armor">${translations[lang].category_armor}</div>`;
+                html += `<div class="inventory-grid">`;
+                inventoryData.armor.forEach(item => {
+                    const name = translations[lang][item.key] || item.key;
+                    html += `
+                            <div class="inventory-item">
+                                <span class="item-name">${name}</span>
+                                <span class="item-count">x${item.count}</span>
+                            </div>
+                        `;
+                });
+                html += `</div>`;
+
+                // Money
+                html += `<div class="inventory-category" data-i18n="category_money">${translations[lang].category_money}</div>`;
+                html += `<div class="inventory-grid">`;
+                inventoryData.money.forEach(item => {
+                    const name = translations[lang][item.key] || item.key;
+                    html += `
+                            <div class="inventory-item">
+                                <span class="item-name">${name}</span>
+                                <span class="item-count">$${item.count.toLocaleString()}</span>
+                            </div>
+                        `;
+                });
+                html += `</div>`;
+
+                inventoryContent.innerHTML = html;
+            }
+
+            // ---------- ФУНКЦИИ ДИАЛОГОВ ----------
+            function openDialog(id) {
+                const el = document.getElementById(id);
+                if (el) el.classList.add('active');
+            }
+
+            function closeDialog(id) {
+                const el = document.getElementById(id);
+                if (el) el.classList.remove('active');
+            }
+
+            function closeAllDialogs() {
+                overlays.forEach(o => o.classList.remove('active'));
+                connectingDialog.classList.remove('active');
+                loadingScreen.classList.remove('active');
+                notifDialog.classList.remove('active');
+                if (loadInterval) {
+                    clearInterval(loadInterval);
+                    loadInterval = null;
+                }
+                isLoading = false;
+                // Скрываем HUD
+                hideHUD();
+            }
+
+            // ---------- УВЕДОМЛЕНИЕ (БЕЗ СМАЙЛИКОВ) ----------
+            function showNotification(text, icon = '') {
+                notifText.textContent = text;
+                document.getElementById('notif-icon').textContent = icon; // пусто
+                openDialog('notification-dialog');
+                playClickSound();
+            }
+
+            function closeNotification() {
+                closeDialog('notification-dialog');
+                playClickSound();
+            }
+
+            notifOk.addEventListener('click', closeNotification);
+            notifClose.addEventListener('click', closeNotification);
+            notifDialog.addEventListener('click', function(e) {
+                if (e.target === this) closeNotification();
+            });
+
+            // ---------- HUD ----------
+            function showHUD() {
+                // Заполняем аватарки
+                const namesLeft = ['Player1', 'Player2', 'Player3', 'Player4'];
+                const namesRight = ['Player5', 'Player6', 'Player7', 'Player8'];
+                hudAvatarsLeft.innerHTML = namesLeft.map(name =>
+                    `<div class="hud-avatar"><div class="avatar-img">?</div><span class="avatar-name">${name}</span></div>`
+                ).join('');
+                hudAvatarsRight.innerHTML = namesRight.map(name =>
+                    `<div class="hud-avatar"><div class="avatar-img">?</div><span class="avatar-name">${name}</span></div>`
+                ).join('');
+
+                // Сброс HP и Armor
+                hudHpFill.style.width = '100%';
+                hudHpText.textContent = '100';
+                hudArmorFill.style.width = '100%';
+                hudArmorText.textContent = '100';
+
+                hudContainer.classList.add('active');
+                // Скрываем меню и логотип (они уже скрыты, но можно дополнительно)
+                // Не скрываем, т.к. они за HUD
+            }
+
+            function hideHUD() {
+                hudContainer.classList.remove('active');
+            }
+
+            // Слушаем Esc для скрытия HUD (как в игре)
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape' && hudContainer.classList.contains('active')) {
+                    hideHUD();
+                    // Показываем меню? Но по логике игры Esc возвращает в меню, но мы просто скроем HUD.
+                    // Для демонстрации оставим так.
+                    playClickSound();
+                }
+            });
+
+            // ---------- ПЕРЕВОД ----------
+            function updateLanguage(lang) {
+                currentLang = lang;
+                localStorage.setItem('css_lang', lang);
+                document.querySelectorAll('[data-i18n]').forEach(el => {
+                    const key = el.dataset.i18n;
+                    if (translations[lang] && translations[lang][key] !== undefined) {
+                        const hasHtml = /<[a-z][\s\S]*>/i.test(translations[lang][key]);
+                        if (hasHtml || el.innerHTML.includes('<')) {
+                            el.innerHTML = translations[lang][key];
+                        } else {
+                            el.textContent = translations[lang][key];
+                        }
+                    }
+                });
+                if (langSelect) langSelect.value = lang;
+                if (loadingScreen.classList.contains('active')) {
+                    const loadTextEl = loadingScreen.querySelector('.load-text');
+                    if (loadTextEl && loadTextEl.dataset.i18n) {
+                        const key = loadTextEl.dataset.i18n;
+                        loadTextEl.textContent = translations[lang][key] || loadTextEl.textContent;
+                    }
+                }
+                renderModsCatalog();
+                renderSoundtracks();
+                // Инвентарь перерисовывается при открытии
+            }
+
+            function loadLanguage() {
+                const saved = localStorage.getItem('css_lang');
+                if (saved && (saved === 'en' || saved === 'ru')) {
+                    updateLanguage(saved);
+                } else {
+                    updateLanguage('en');
+                }
+            }
+
+            // ---------- УПРАВЛЕНИЕ MODERN UI ----------
+            function applyModernUI() {
+                document.body.classList.add('modern-ui');
+                localStorage.setItem('modern_ui_installed', 'true');
+                const mod = availableMods.find(m => m.id === 'interface_modern');
+                if (mod) mod.status = 'installed';
+                renderModsCatalog();
+            }
+
+            function removeModernUI() {
+                document.body.classList.remove('modern-ui');
+                localStorage.removeItem('modern_ui_installed');
+                const mod = availableMods.find(m => m.id === 'interface_modern');
+                if (mod) mod.status = 'available';
+                renderModsCatalog();
+            }
+
+            function checkModernUIState() {
+                const installed = localStorage.getItem('modern_ui_installed') === 'true';
+                if (installed) {
+                    document.body.classList.add('modern-ui');
+                    const mod = availableMods.find(m => m.id === 'interface_modern');
+                    if (mod) mod.status = 'installed';
+                } else {
+                    document.body.classList.remove('modern-ui');
+                    const mod = availableMods.find(m => m.id === 'interface_modern');
+                    if (mod) mod.status = 'available';
+                }
+            }
+
+            // ---------- УСТАНОВКА / УДАЛЕНИЕ МОДОВ ----------
+            function installMod(modId) {
+                const mod = availableMods.find(m => m.id === modId);
+                if (!mod || mod.status === 'installed' || mod.status === 'downloading') return;
+
+                mod.status = 'downloading';
+                renderModsCatalog();
+
+                const progressBar = document.getElementById(`fill-${modId}`);
+                const progressContainer = document.getElementById(`progress-${modId}`);
+                if (progressContainer) progressContainer.classList.add('active');
+
+                let progress = 0;
+                const interval = setInterval(() => {
+                    progress += Math.random() * 8 + 4;
+                    if (progress >= 100) {
+                        progress = 100;
+                        clearInterval(interval);
+                        mod.status = 'installed';
+                        if (modId === 'interface_modern') {
+                            applyModernUI();
+                        }
+                        renderModsCatalog();
+                        const msg = currentLang === 'ru' ?
+                            'Мод "' + mod.name + '" успешно установлен!' :
+                            'Mod "' + mod.name + '" installed successfully!';
+                        showNotification(msg, '');
+                        playClickSound();
+                    }
+                    if (progressBar) {
+                        progressBar.style.width = Math.min(progress, 100) + '%';
+                    }
+                }, 150);
+            }
+
+            function uninstallMod(modId) {
+                const mod = availableMods.find(m => m.id === modId);
+                if (!mod || mod.status !== 'installed') return;
+
+                mod.status = 'available';
+                if (modId === 'interface_modern') {
+                    removeModernUI();
+                }
+                renderModsCatalog();
+                const msg = currentLang === 'ru' ?
+                    'Мод "' + mod.name + '" успешно удалён!' :
+                    'Mod "' + mod.name + '" uninstalled successfully!';
+                showNotification(msg, '');
+                playClickSound();
+            }
+
+            // ---------- РЕНДЕР КАТАЛОГА МОДОВ ----------
+            function renderModsCatalog() {
+                let html = '';
+                availableMods.forEach(mod => {
+                    const isInstalled = mod.status === 'installed';
+                    const isDownloading = mod.status === 'downloading';
+                    const btnText = isInstalled ?
+                        (currentLang === 'ru' ? 'Удалить' : 'Uninstall') :
+                        isDownloading ?
+                        (currentLang === 'ru' ? 'Загрузка...' : 'Downloading...') :
+                        (currentLang === 'ru' ? 'Скачать' : 'Download');
+                    const btnDisabled = isDownloading;
+                    const statusText = isInstalled ?
+                        (currentLang === 'ru' ? 'Установлено' : 'Installed') :
+                        isDownloading ?
+                        (currentLang === 'ru' ? 'Загрузка...' : 'Downloading...') :
+                        '';
+                    const progressClass = isDownloading ? 'active' : '';
+
+                    html += `
+                            <div class="mod-item" data-mod-id="${mod.id}">
+                                <div class="mod-info">
+                                    <div class="mod-name">${mod.name}</div>
+                                    <div class="mod-desc">${mod.desc}</div>
+                                    <div class="mod-size">${mod.size}</div>
+                                </div>
+                                <div class="mod-actions">
+                                    <span class="mod-status ${isInstalled ? 'installed' : isDownloading ? 'downloading' : ''}">${statusText}</span>
+                                    <div class="download-progress ${progressClass}" id="progress-${mod.id}">
+                                        <div class="fill" id="fill-${mod.id}" style="width:${isDownloading ? '30%' : '0%'};"></div>
+                                    </div>
+                                    <button class="mod-download-btn" data-mod-id="${mod.id}" ${btnDisabled ? 'disabled' : ''}>${btnText}</button>
+                                </div>
+                            </div>
+                        `;
+                });
+                modsCatalog.innerHTML = html;
+
+                document.querySelectorAll('.mod-download-btn').forEach(btn => {
+                    btn.addEventListener('click', function(e) {
+                        const modId = this.dataset.modId;
+                        const mod = availableMods.find(m => m.id === modId);
+                        if (!mod) return;
+                        if (mod.status === 'installed') {
+                            uninstallMod(modId);
+                        } else if (mod.status === 'available') {
+                            installMod(modId);
+                        }
+                    });
+                });
+            }
+
+            // ---------- САУНДТРЕКИ ----------
+            function renderSoundtracks() {
+                let html = '';
+                soundtracks.forEach(track => {
+                    const isPlaying = (currentTrackId === track.id);
+                    const playLabel = currentLang === 'ru' ? 'Играть' : 'Play';
+                    const stopLabel = currentLang === 'ru' ? 'Стоп' : 'Stop';
+                    const btnText = isPlaying ? stopLabel : playLabel;
+                    const disabled = isPlaying ? false : false;
+                    html += `
+                            <div class="soundtrack-item" data-track-id="${track.id}">
+                                <div class="track-name">${track.name}</div>
+                                <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+                                    <span class="track-duration">${track.duration}</span>
+                                    <span class="now-playing" style="${isPlaying ? 'display:inline;' : 'display:none;'}">${currentLang === 'ru' ? 'Сейчас играет' : 'Now playing'}</span>
+                                    <div class="track-actions">
+                                        <button class="track-play-btn" data-track-id="${track.id}">${btnText}</button>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                });
+                soundtracksList.innerHTML = html;
+
+                // Обработчики
+                document.querySelectorAll('.track-play-btn').forEach(btn => {
+                    btn.addEventListener('click', function(e) {
+                        const trackId = this.dataset.trackId;
+                        toggleTrack(trackId);
+                    });
+                });
+            }
+
+            function toggleTrack(trackId) {
+                // Если уже играет этот трек — останавливаем
+                if (currentTrackId === trackId) {
+                    stopTrack();
+                    return;
+                }
+                // Иначе останавливаем текущий и запускаем новый
+                stopTrack();
+                playTrack(trackId);
+            }
+
+            function playTrack(trackId) {
+                const track = soundtracks.find(t => t.id === trackId);
+                if (!track) return;
+                // Останавливаем предыдущий
+                stopTrack();
+
+                currentTrackId = trackId;
+                renderSoundtracks();
+
+                // Показываем уведомление о воспроизведении
+                const msg = currentLang === 'ru' ?
+                    'Сейчас играет: ' + track.name :
+                    'Now playing: ' + track.name;
+                showNotification(msg, '');
+
+                // Симуляция окончания трека через некоторое время (в зависимости от длительности)
+                // Длительность в секундах: парсим "2:30" -> 150 сек, но для демонстрации сделаем 5-10 сек
+                let durationSec = 5; // по умолчанию
+                if (track.duration) {
+                    const parts = track.duration.split(':');
+                    if (parts.length === 2) {
+                        durationSec = parseInt(parts[0]) * 60 + parseInt(parts[1]);
+                    }
+                }
+                // Ограничим максимум 10 секундами для демонстрации
+                const playTime = Math.min(durationSec, 10) * 1000;
+
+                if (trackTimeout) clearTimeout(trackTimeout);
+                trackTimeout = setTimeout(() => {
+                    // Автоматически останавливаем по окончании
+                    stopTrack();
+                    const stoppedMsg = currentLang === 'ru' ?
+                        'Трек "' + track.name + '" завершён.' :
+                        'Track "' + track.name + '" finished.';
+                    showNotification(stoppedMsg, '');
+                }, playTime);
+            }
+
+            function stopTrack() {
+                if (trackTimeout) {
+                    clearTimeout(trackTimeout);
+                    trackTimeout = null;
+                }
+                if (currentTrackId) {
+                    const oldId = currentTrackId;
+                    currentTrackId = null;
+                    renderSoundtracks();
+                    // Не показываем уведомление, если остановлено вручную
+                }
+            }
+
+            // ---------- РЕНДЕР ТАБЛИЦЫ СЕРВЕРОВ ----------
+            function renderServers() {
+                let html = '';
+                serversData.forEach((s, idx) => {
+                    const pw = s.password ? '🔒' : '·';
+                    const sec = s.secure ? '✓' : '·';
+                    const sel = (idx === selectedServerIndex) ? 'selected' : '';
+                    html += `
+                            <tr class="${sel}" data-index="${idx}">
+                                <td class="col-pw"><span>${pw}</span></td>
+                                <td class="col-secure"><span>${sec}</span></td>
+                                <td>${s.name}</td>
+                                <td class="col-players">${s.players}</td>
+                                <td class="col-ping">${s.ping}</td>
+                                <td class="col-map">${s.map}</td>
+                            </tr>
+                        `;
+                });
+                serverTbody.innerHTML = html;
+
+                document.querySelectorAll('#server-tbody tr').forEach(tr => {
+                    tr.addEventListener('click', function() {
+                        const idx = parseInt(this.dataset.index, 10);
+                        if (!isNaN(idx)) selectServer(idx);
+                    });
+                    tr.addEventListener('dblclick', function() {
+                        const idx = parseInt(this.dataset.index, 10);
+                        if (!isNaN(idx)) {
+                            selectServer(idx);
+                            connectToServer();
+                        }
+                    });
+                });
+                updateConnectButton();
+            }
+
+            function selectServer(idx) {
+                if (idx < 0 || idx >= serversData.length) return;
+                selectedServerIndex = idx;
+                renderServers();
+                playClickSound();
+                updateConnectButton();
+            }
+
+            function updateConnectButton() {
+                btnConnect.disabled = (selectedServerIndex === -1);
+            }
+
+            // ---------- ПОДКЛЮЧЕНИЕ К СЕРВЕРУ ----------
+            function connectToServer() {
+                if (selectedServerIndex === -1 || isLoading) return;
+                const server = serversData[selectedServerIndex];
+                closeDialog('find-servers-dialog');
+
+                connectingServerName.textContent = server.name;
+                openDialog('connecting-dialog');
+                playClickSound();
+
+                setTimeout(() => {
+                    closeDialog('connecting-dialog');
+                    startConnectLoading(server);
+                }, 800);
+            }
+
+            // ---------- ЗАГРУЗКА ПРИ ПОДКЛЮЧЕНИИ ----------
+            function startConnectLoading(server) {
+                if (isLoading) return;
+                isLoading = true;
+
+                const stages = [
+                    { text: currentLang === 'ru' ? 'Загрузка ресурсов...' : 'Loading resources...', progress: 15 },
+                    { text: currentLang === 'ru' ? 'Загрузка карты...' : 'Loading map...', progress: 35 },
+                    { text: currentLang === 'ru' ? 'Загрузка моделей...' : 'Loading models...', progress: 55 },
+                    { text: currentLang === 'ru' ? 'Загрузка звуков...' : 'Loading sounds...', progress: 75 },
+                    { text: currentLang === 'ru' ? 'Подключение к серверу...' : 'Connecting to server...',
+                    progress: 90 },
+                    { text: currentLang === 'ru' ? 'Завершение...' : 'Finalizing...', progress: 100 }
+                ];
+
+                loadMapName.textContent = server.map + '  •  ' + server.name;
+                loadBar.style.width = '0%';
+                loadStageText.textContent = currentLang === 'ru' ? 'Инициализация...' : 'Initializing...';
+                loadingScreen.classList.add('active');
+                playClickSound();
+
+                let currentStage = 0;
+                let progress = 0;
+                if (loadInterval) clearInterval(loadInterval);
+
+                loadInterval = setInterval(() => {
+                    progress += Math.random() * 3 + 1.5;
+                    if (progress > 100) progress = 100;
+
+                    while (currentStage < stages.length - 1 && progress >= stages[currentStage + 1].progress) {
+                        currentStage++;
+                    }
+                    loadStageText.textContent = stages[currentStage].text;
+                    loadBar.style.width = progress + '%';
+
+                    if (progress >= 100) {
+                        clearInterval(loadInterval);
+                        loadInterval = null;
+                        setTimeout(() => {
+                            loadingScreen.classList.remove('active');
+                            isLoading = false;
+                            // Вместо уведомления показываем HUD
+                            showHUD();
+                            // Можно также убрать лишние диалоги
+                            closeAllDialogs();
+                        }, 400);
+                    }
+                }, 120);
+            }
+
+            // ---------- ЗАГРУЗКА ПРИ СОЗДАНИИ СЕРВЕРА ----------
+            function startCreateLoading() {
+                if (isLoading) return;
+                const map = mapSelect.value;
+                const bots = parseInt(botCount.value, 10) || 0;
+                closeDialog('create-server-dialog');
+
+                isLoading = true;
+                loadMapName.textContent = map + '  •  ' + bots + ' bots';
+                loadBar.style.width = '0%';
+                loadStageText.textContent = currentLang === 'ru' ? 'Создание сервера...' : 'Creating server...';
+                loadingScreen.classList.add('active');
+                playClickSound();
+
+                let progress = 0;
+                if (loadInterval) clearInterval(loadInterval);
+                loadInterval = setInterval(() => {
+                    progress += Math.random() * 6 + 2;
+                    if (progress >= 100) {
+                        progress = 100;
+                        clearInterval(loadInterval);
+                        loadInterval = null;
+                        setTimeout(() => {
+                            loadingScreen.classList.remove('active');
+                            isLoading = false;
+                            // Также показываем HUD
+                            showHUD();
+                            closeAllDialogs();
+                        }, 500);
+                    }
+                    loadBar.style.width = Math.min(progress, 100) + '%';
+                    loadStageText.textContent = (currentLang === 'ru' ? 'Загрузка карты... ' : 'Loading map... ') +
+                        Math.floor(Math.min(progress, 100)) + '%';
+                }, 150);
+            }
+
+            // ---------- ОТМЕНА ЗАГРУЗКИ ----------
+            loadCancelBtn.addEventListener('click', function() {
+                if (loadInterval) {
+                    clearInterval(loadInterval);
+                    loadInterval = null;
+                }
+                loadingScreen.classList.remove('active');
+                isLoading = false;
+                playClickSound();
+            });
+
+            // ---------- OPTIONS ----------
+            function loadOptions() {
+                try {
+                    const saved = localStorage.getItem('css_options');
+                    if (saved) {
+                        const data = JSON.parse(saved);
+                        if (data.sensitivity !== undefined) {
+                            sensitivitySlider.value = data.sensitivity;
+                            sensitivityVal.textContent = data.sensitivity;
+                        }
+                        if (data.playerName !== undefined) {
+                            playerNameInput.value = data.playerName;
+                        }
+                    }
+                } catch (_) {}
+            }
+
+            function saveOptions() {
+                try {
+                    const data = {
+                        sensitivity: parseFloat(sensitivitySlider.value),
+                        playerName: playerNameInput.value.trim() || 'Player'
+                    };
+                    localStorage.setItem('css_options', JSON.stringify(data));
+                } catch (_) {}
+            }
+
+            // ---------- ОБРАБОТЧИКИ ----------
+            menuItems.forEach(item => {
+                item.addEventListener('click', function() {
+                    const action = this.dataset.action;
+                    playClickSound();
+                    // Если HUD активен, скрываем его
+                    if (hudContainer.classList.contains('active')) {
+                        hideHUD();
+                    }
+                    switch (action) {
+                        case 'find-servers':
+                            closeAllDialogs();
+                            renderServers();
+                            openDialog('find-servers-dialog');
+                            break;
+                        case 'create-server':
+                            closeAllDialogs();
+                            openDialog('create-server-dialog');
+                            break;
+                        case 'options':
+                            closeAllDialogs();
+                            loadOptions();
+                            openDialog('options-dialog');
+                            break;
+                        case 'inventory':
+                            closeAllDialogs();
+                            renderInventory();
+                            openDialog('inventory-dialog');
+                            break;
+                        case 'soundtracks':
+                            closeAllDialogs();
+                            renderSoundtracks();
+                            openDialog('soundtracks-dialog');
+                            break;
+                        case 'quit':
+                            closeAllDialogs();
+                            openDialog('quit-dialog');
+                            break;
+                        default:
+                            break;
+                    }
+                });
+                item.addEventListener('mouseenter', function() {
+                    playClickSound();
+                });
+            });
+
+            closeBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const targetId = this.dataset.close;
+                    if (targetId) {
+                        playClickSound();
+                        closeDialog(targetId);
+                    }
+                });
+            });
+
+            overlays.forEach(overlay => {
+                overlay.addEventListener('click', function(e) {
+                    if (e.target === this) {
+                        const id = this.id;
+                        if (id) {
+                            playClickSound();
+                            closeDialog(id);
+                        }
+                    }
+                });
+            });
+
+            btnConnect.addEventListener('click', function() {
+                connectToServer();
+            });
+
+            btnStart.addEventListener('click', function() {
+                startCreateLoading();
+            });
+
+            // Quit confirm (если вдруг кто-то вызовет)
+            btnQuitConfirm.addEventListener('click', function() {
+                playClickSound();
+                closeDialog('quit-dialog');
+                const msg = currentLang === 'ru' ?
+                    'Counter-Strike: Source закрыт.' :
+                    'Counter-Strike: Source has been closed.';
+                showNotification(msg, '');
+                closeAllDialogs();
+            });
+
+            sensitivitySlider.addEventListener('input', function() {
+                const val = parseFloat(this.value);
+                sensitivityVal.textContent = val.toFixed(1);
+                saveOptions();
+            });
+
+            playerNameInput.addEventListener('change', saveOptions);
+            playerNameInput.addEventListener('blur', saveOptions);
+
+            tabBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const tab = this.dataset.tab;
+                    if (!tab) return;
+                    tabBtns.forEach(b => b.classList.remove('active'));
+                    tabContents.forEach(c => c.classList.remove('active'));
+                    this.classList.add('active');
+                    const targetContent = document.getElementById('tab-' + tab);
+                    if (targetContent) targetContent.classList.add('active');
+                    playClickSound();
+                });
+            });
+
+            document.querySelector('#options-dialog .dialog-close')?.addEventListener('click', saveOptions);
+            document.querySelectorAll('#options-dialog .dialog-footer button[data-close]').forEach(btn => {
+                btn.addEventListener('click', saveOptions);
+            });
+
+            document.addEventListener('mouseover', function(e) {
+                const tr = e.target.closest('#server-tbody tr');
+                if (tr && !tr.classList.contains('selected')) {
+                    if (!tr.dataset.soundPlayed) {
+                        playClickSound();
+                        tr.dataset.soundPlayed = '1';
+                        setTimeout(() => delete tr.dataset.soundPlayed, 200);
+                    }
+                }
+            });
+
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    let anyOpen = false;
+                    overlays.forEach(o => {
+                        if (o.classList.contains('active')) {
+                            anyOpen = true;
+                            closeDialog(o.id);
+                        }
+                    });
+                    if (connectingDialog.classList.contains('active')) {
+                        anyOpen = true;
+                        closeDialog('connecting-dialog');
+                    }
+                    if (loadingScreen.classList.contains('active')) {
+                        anyOpen = true;
+                        loadingScreen.classList.remove('active');
+                        if (loadInterval) {
+                            clearInterval(loadInterval);
+                            loadInterval = null;
+                        }
+                        isLoading = false;
+                    }
+                    if (notifDialog.classList.contains('active')) {
+                        anyOpen = true;
+                        closeNotification();
+                    }
+                    if (anyOpen) playClickSound();
+                }
+            });
+
+            // ---------- ВЫБОР ЯЗЫКА ----------
+            langSelect.addEventListener('change', function() {
+                const lang = this.value;
+                updateLanguage(lang);
+                if (document.getElementById('find-servers-dialog').classList.contains('active')) {
+                    renderServers();
+                }
+                playClickSound();
+            });
+
+            // ---------- ВЫБОР ВИДЕОКАРТЫ ----------
+            function checkFirstRun() {
+                const gpuSelectedFlag = localStorage.getItem('gpu_selected');
+                if (gpuSelectedFlag === 'true') {
+                    showMainInterface();
+                    return;
+                }
+                openDialog('gpu-dialog');
+            }
+
+            gpuContinue.addEventListener('click', function() {
+                const gpu = gpuSelect.value;
+                localStorage.setItem('gpu_selected', 'true');
+                localStorage.setItem('gpu_type', gpu);
+                closeDialog('gpu-dialog');
+
+                blackScreen.classList.add('active');
+                successMsg.classList.remove('show');
+                successBtn.classList.remove('show');
+
+                setTimeout(() => {
+                    successMsg.classList.add('show');
+                    successBtn.classList.add('show');
+                    playClickSound();
+                }, 1500);
+
+                playClickSound();
+            });
+
+            successBtn.addEventListener('click', function() {
+                blackScreen.classList.remove('active');
+                successMsg.classList.remove('show');
+                successBtn.classList.remove('show');
+                playClickSound();
+                showMainInterface();
+            });
+
+            // ---------- ИНИЦИАЛИЗАЦИЯ ----------
+            loadLanguage();
+            checkFirstRun();
+            renderServers();
+            loadOptions();
+            sensitivityVal.textContent = sensitivitySlider.value;
+
+            checkModernUIState();
+            renderModsCatalog();
+            renderSoundtracks();
+
+            console.log('CS:S menu loaded with Inventory (no weapons) and HUD.');
+        })();
+    </script>
+</body>
+</html>
